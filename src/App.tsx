@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useTarefas } from './hooks/useTarefas';
 import { useFiltros } from './hooks/useFiltros';
 import { useAgendadorLembretes } from './hooks/useAgendadorLembretes';
+import { useCapturaVoz, type EstadoCapturaVoz } from './hooks/useCapturaVoz';
 import { TaskForm } from './components/TaskForm';
 import { TaskList } from './components/TaskList';
 import { FilterBar } from './components/FilterBar';
@@ -11,6 +12,8 @@ import { ViewTabs, type Visao } from './components/ViewTabs';
 import { NotificationExplainer } from './components/NotificationExplainer';
 import { PermissionDeniedNotice } from './components/PermissionDeniedNotice';
 import { MissedRemindersBanner } from './components/MissedRemindersBanner';
+import { VoiceCaptureOverlay } from './components/VoiceCaptureOverlay';
+import { VoiceConfirmCard } from './components/VoiceConfirmCard';
 import { textos } from './lib/textos';
 import { agruparHoje, agruparSemana } from './lib/visoes';
 import {
@@ -33,6 +36,13 @@ export default function App() {
   const [anuncio, setAnuncio] = useState('');
   const [permissao, setPermissao] = useState(permissaoAtual);
   const [explicarNotificacoesAberto, setExplicarNotificacoesAberto] = useState(false);
+  const {
+    estado: estadoVoz,
+    iniciar: iniciarVoz,
+    parar: pararVoz,
+    cancelar: cancelarVoz,
+    resetar: resetarVoz,
+  } = useCapturaVoz();
 
   const tarefasFiltradas = tarefas.filter(
     (tarefa) =>
@@ -40,15 +50,43 @@ export default function App() {
       (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria)),
   );
 
-  function handleAdicionar(titulo: string, categoria: Categoria | null, lembreteEm: string | null) {
-    dispatch({ tipo: 'adicionar', titulo, categoria, lembreteEm });
-    setAnuncio('Tarefa criada');
-
+  function avaliarPermissaoAoCriarLembrete(lembreteEm: string | null) {
     if (lembreteEm !== null && suportado() && permissaoAtual() === 'default' && !jaPerguntou()) {
       marcarPerguntado();
       setExplicarNotificacoesAberto(true);
     }
   }
+
+  function handleAdicionar(titulo: string, categoria: Categoria | null, lembreteEm: string | null) {
+    dispatch({ tipo: 'adicionar', titulo, categoria, lembreteEm, nota: null, origem: 'texto' });
+    setAnuncio('Tarefa criada');
+    avaliarPermissaoAoCriarLembrete(lembreteEm);
+  }
+
+  function handleConfirmarVoz(
+    titulo: string,
+    categoria: Categoria | null,
+    lembreteEm: string | null,
+    nota: string | null,
+  ) {
+    dispatch({ tipo: 'adicionar', titulo, categoria, lembreteEm, nota, origem: 'voz' });
+    setAnuncio('Tarefa criada');
+    avaliarPermissaoAoCriarLembrete(lembreteEm);
+    resetarVoz();
+  }
+
+  const fasesComPainelAberto: EstadoCapturaVoz['fase'][] = ['capturando', 'processando', 'erro', 'confirmando'];
+  const painelVozAberto = fasesComPainelAberto.includes(estadoVoz.fase);
+
+  useEffect(() => {
+    if (!painelVozAberto) return;
+
+    function aoPressionarTecla(evento: KeyboardEvent) {
+      if (evento.key === 'Escape') cancelarVoz();
+    }
+    document.addEventListener('keydown', aoPressionarTecla);
+    return () => document.removeEventListener('keydown', aoPressionarTecla);
+  }, [painelVozAberto, cancelarVoz]);
 
   async function handlePermitirNotificacoes() {
     const resultado = await solicitarPermissao();
@@ -113,7 +151,27 @@ export default function App() {
         )}
       </main>
 
-      <TaskForm onAdicionar={handleAdicionar} />
+      <TaskForm onAdicionar={handleAdicionar} onIniciarVoz={iniciarVoz} />
+
+      {estadoVoz.fase === 'capturando' && (
+        <VoiceCaptureOverlay
+          fase="capturando"
+          parcial={estadoVoz.parcial}
+          onParar={pararVoz}
+          onCancelar={cancelarVoz}
+        />
+      )}
+      {estadoVoz.fase === 'processando' && <VoiceCaptureOverlay fase="processando" />}
+      {estadoVoz.fase === 'erro' && (
+        <VoiceCaptureOverlay fase="erro" erro={estadoVoz.erro} onFechar={resetarVoz} />
+      )}
+      {estadoVoz.fase === 'confirmando' && (
+        <VoiceConfirmCard
+          sugestao={estadoVoz.sugestao}
+          onConfirmar={handleConfirmarVoz}
+          onDescartar={resetarVoz}
+        />
+      )}
 
       {explicarNotificacoesAberto && (
         <NotificationExplainer
