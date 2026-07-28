@@ -5,6 +5,8 @@ import { useTarefas } from './hooks/useTarefas';
 import { useFiltros } from './hooks/useFiltros';
 import { useAgendadorLembretes } from './hooks/useAgendadorLembretes';
 import { useCapturaVoz, type EstadoCapturaVoz } from './hooks/useCapturaVoz';
+import { useTema } from './hooks/useTema';
+import { useDesfazer } from './hooks/useDesfazer';
 import { TaskForm } from './components/TaskForm';
 import { TaskList } from './components/TaskList';
 import { FilterBar } from './components/FilterBar';
@@ -16,6 +18,8 @@ import { VoiceCaptureOverlay } from './components/VoiceCaptureOverlay';
 import { VoiceConfirmCard } from './components/VoiceConfirmCard';
 import { CalendarGrid } from './components/CalendarGrid';
 import { DayDetailPanel } from './components/DayDetailPanel';
+import { ThemeToggle } from './components/ThemeToggle';
+import { UndoToast } from './components/UndoToast';
 import { textos } from './lib/textos';
 import { agruparHoje, agruparSemana } from './lib/visoes';
 import { diaEmIso09h } from './lib/datas';
@@ -50,11 +54,15 @@ export default function App() {
     cancelar: cancelarVoz,
     resetar: resetarVoz,
   } = useCapturaVoz();
+  const { tema, alternarTema } = useTema();
+  const { idPendente, tipoPendente, agendar: agendarDesfazer, desfazer } = useDesfazer(dispatch);
 
+  const filtroAtivo = categoriasSelecionadas.length > 0;
   const tarefasFiltradas = tarefas.filter(
     (tarefa) =>
-      categoriasSelecionadas.length === 0 ||
-      (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria)),
+      tarefa.id !== idPendente &&
+      (!filtroAtivo ||
+        (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria))),
   );
 
   function avaliarPermissaoAoCriarLembrete(lembreteEm: string | null) {
@@ -113,21 +121,24 @@ export default function App() {
   }
 
   function handleConcluir(id: string) {
-    dispatch({ tipo: 'concluir', id });
-    setAnuncio('Tarefa concluída');
+    agendarDesfazer({ id, tipo: 'concluir' });
+    setAnuncio(textos.tarefaConcluida);
   }
 
   function handleExcluir(id: string) {
-    dispatch({ tipo: 'excluir', id });
-    setAnuncio('Tarefa excluída');
+    agendarDesfazer({ id, tipo: 'excluir' });
+    setAnuncio(textos.tarefaExcluida);
   }
 
   return (
     <div className="min-h-screen bg-background text-on-surface">
       <main className="mx-auto w-full max-w-[640px] px-margin-mobile pb-32 pt-lg">
-        <header className="mb-lg">
-          <h1 className="text-display-md-mobile text-on-surface">{textos.tituloApp}</h1>
-          <p className="text-body-md text-on-surface-variant">{textos.subtituloApp}</p>
+        <header className="mb-lg flex items-start justify-between">
+          <div>
+            <h1 className="text-display-md-mobile text-on-surface">{textos.tituloApp}</h1>
+            <p className="text-body-md text-on-surface-variant">{textos.subtituloApp}</p>
+          </div>
+          <ThemeToggle tema={tema} onAlternar={alternarTema} />
         </header>
 
         {corrompido && (
@@ -158,6 +169,7 @@ export default function App() {
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
+            mensagemVazia={filtroAtivo ? textos.listaVaziaFiltro : textos.listaVazia}
           />
         )}
         {visao === 'semana' && (
@@ -219,6 +231,13 @@ export default function App() {
           onFechar={() => setExplicarNotificacoesAberto(false)}
         />
       )}
+
+      {idPendente && (
+        <UndoToast
+          mensagem={tipoPendente === 'concluir' ? textos.tarefaConcluida : textos.tarefaExcluida}
+          onDesfazer={desfazer}
+        />
+      )}
     </div>
   );
 }
@@ -230,13 +249,17 @@ type VisaoProps = {
   onExcluir: (id: string) => void;
 };
 
-function VisaoHoje({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
+function VisaoHoje({
+  tarefas,
+  tarefaDestacada,
+  onConcluir,
+  onExcluir,
+  mensagemVazia,
+}: VisaoProps & { mensagemVazia: string }) {
   const { comData, semData } = agruparHoje(tarefas);
 
   if (comData.length === 0 && semData.length === 0) {
-    return (
-      <p className="mt-lg text-center text-body-md text-on-surface-variant">{textos.listaVazia}</p>
-    );
+    return <p className="mt-lg text-center text-body-md text-on-surface-variant">{mensagemVazia}</p>;
   }
 
   return (
