@@ -14,8 +14,13 @@ import { PermissionDeniedNotice } from './components/PermissionDeniedNotice';
 import { MissedRemindersBanner } from './components/MissedRemindersBanner';
 import { VoiceCaptureOverlay } from './components/VoiceCaptureOverlay';
 import { VoiceConfirmCard } from './components/VoiceConfirmCard';
+import { CalendarGrid } from './components/CalendarGrid';
+import { DayDetailPanel } from './components/DayDetailPanel';
 import { textos } from './lib/textos';
 import { agruparHoje, agruparSemana } from './lib/visoes';
+import { diaEmIso09h } from './lib/datas';
+import { tarefasComLembreteNoDia } from './lib/calendario';
+import { capitalizarPrimeiraLetra } from './lib/formatacao';
 import {
   jaPerguntou,
   marcarPerguntado,
@@ -36,6 +41,8 @@ export default function App() {
   const [anuncio, setAnuncio] = useState('');
   const [permissao, setPermissao] = useState(permissaoAtual);
   const [explicarNotificacoesAberto, setExplicarNotificacoesAberto] = useState(false);
+  const [mesVisualizado, setMesVisualizado] = useState(() => new Date());
+  const [diaSelecionado, setDiaSelecionado] = useState<Date | null>(null);
   const {
     estado: estadoVoz,
     iniciar: iniciarVoz,
@@ -75,18 +82,29 @@ export default function App() {
     resetarVoz();
   }
 
+  function handleAdicionarNoDia(titulo: string) {
+    if (diaSelecionado === null) return;
+    const lembreteEm = diaEmIso09h(diaSelecionado);
+    dispatch({ tipo: 'adicionar', titulo, categoria: null, lembreteEm, nota: null, origem: 'texto' });
+    setAnuncio('Tarefa criada');
+    avaliarPermissaoAoCriarLembrete(lembreteEm);
+  }
+
   const fasesComPainelAberto: EstadoCapturaVoz['fase'][] = ['capturando', 'processando', 'erro', 'confirmando'];
   const painelVozAberto = fasesComPainelAberto.includes(estadoVoz.fase);
+  const algumPainelAberto = painelVozAberto || diaSelecionado !== null;
 
   useEffect(() => {
-    if (!painelVozAberto) return;
+    if (!algumPainelAberto) return;
 
     function aoPressionarTecla(evento: KeyboardEvent) {
-      if (evento.key === 'Escape') cancelarVoz();
+      if (evento.key !== 'Escape') return;
+      if (painelVozAberto) cancelarVoz();
+      else setDiaSelecionado(null);
     }
     document.addEventListener('keydown', aoPressionarTecla);
     return () => document.removeEventListener('keydown', aoPressionarTecla);
-  }, [painelVozAberto, cancelarVoz]);
+  }, [algumPainelAberto, painelVozAberto, cancelarVoz]);
 
   async function handlePermitirNotificacoes() {
     const resultado = await solicitarPermissao();
@@ -134,14 +152,15 @@ export default function App() {
           />
         </div>
 
-        {visao === 'hoje' ? (
+        {visao === 'hoje' && (
           <VisaoHoje
             tarefas={tarefasFiltradas}
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
           />
-        ) : (
+        )}
+        {visao === 'semana' && (
           <VisaoSemana
             tarefas={tarefasFiltradas}
             tarefaDestacada={tarefaDestacada}
@@ -149,9 +168,30 @@ export default function App() {
             onExcluir={handleExcluir}
           />
         )}
+        {visao === 'calendario' && (
+          <CalendarGrid
+            mesVisualizado={mesVisualizado}
+            tarefas={tarefasFiltradas}
+            diaSelecionado={diaSelecionado}
+            onMudarMes={setMesVisualizado}
+            onSelecionarDia={setDiaSelecionado}
+          />
+        )}
       </main>
 
       <TaskForm onAdicionar={handleAdicionar} onIniciarVoz={iniciarVoz} />
+
+      {diaSelecionado && (
+        <DayDetailPanel
+          dia={diaSelecionado}
+          tarefas={tarefasComLembreteNoDia(tarefasFiltradas, diaSelecionado)}
+          tarefaDestacada={tarefaDestacada}
+          onFechar={() => setDiaSelecionado(null)}
+          onConcluir={handleConcluir}
+          onExcluir={handleExcluir}
+          onAdicionarNoDia={handleAdicionarNoDia}
+        />
+      )}
 
       {estadoVoz.fase === 'capturando' && (
         <VoiceCaptureOverlay
@@ -222,10 +262,6 @@ function VisaoHoje({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoPro
       )}
     </div>
   );
-}
-
-function capitalizarPrimeiraLetra(texto: string): string {
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 function VisaoSemana({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
