@@ -7,14 +7,19 @@ type TaskListProps = {
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  mensagemVazia?: string;
 };
 
-export function TaskList({ tarefas, tarefaDestacada, onConcluir, onExcluir }: TaskListProps) {
+export function TaskList({
+  tarefas,
+  tarefaDestacada,
+  onConcluir,
+  onExcluir,
+  mensagemVazia = textos.listaVazia,
+}: TaskListProps) {
   if (tarefas.length === 0) {
     return (
-      <p className="mt-lg text-center text-body-md text-on-surface-variant">
-        {textos.listaVazia}
-      </p>
+      <p className="mt-lg text-center text-body-md text-on-surface-variant">{mensagemVazia}</p>
     );
   }
 

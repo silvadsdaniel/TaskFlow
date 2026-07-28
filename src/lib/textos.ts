@@ -50,4 +50,13 @@ export const textos = {
   abaCalendario: 'Calendário',
   botaoMesAnterior: 'Mês anterior',
   botaoProximoMes: 'Próximo mês',
+  botaoAlternarTema: 'Tema',
+  temaSistema: 'Sistema',
+  temaClaro: 'Claro',
+  temaEscuro: 'Escuro',
+  botaoDesfazer: 'Desfazer',
+  tarefaConcluida: 'Tarefa concluída',
+  tarefaExcluida: 'Tarefa excluída',
+  listaVaziaFiltro: 'Nenhuma tarefa nessa categoria.',
+  diaSemTarefas: 'Nenhuma tarefa neste dia.',
 } as const;

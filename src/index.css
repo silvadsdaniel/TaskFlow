@@ -2,6 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-surface: 250 249 255;
+  --color-surface-dim: 216 217 228;
+  --color-surface-bright: 250 249 255;
+  --color-surface-container-lowest: 255 255 255;
+  --color-surface-container-low: 242 243 254;
+  --color-surface-container: 236 237 248;
+  --color-surface-container-high: 230 231 243;
+  --color-surface-container-highest: 224 226 237;
+  --color-on-surface: 24 27 35;
+  --color-on-surface-variant: 65 71 84;
+  --color-inverse-surface: 45 48 57;
+  --color-inverse-on-surface: 239 240 251;
+  --color-outline: 114 119 134;
+  --color-outline-variant: 193 198 215;
+  --color-primary: 0 88 195;
+  --color-on-primary: 255 255 255;
+  --color-primary-container: 0 112 243;
+  --color-on-primary-container: 255 255 255;
+  --color-secondary: 0 108 73;
+  --color-on-secondary: 255 255 255;
+  --color-secondary-container: 108 248 187;
+  --color-on-secondary-container: 0 113 77;
+  --color-tertiary: 114 44 227;
+  --color-on-tertiary: 255 255 255;
+  --color-error: 186 26 26;
+  --color-on-error: 255 255 255;
+  --color-error-container: 255 218 214;
+  --color-on-error-container: 147 0 10;
+  --color-background: 250 249 255;
+  --color-on-background: 24 27 35;
+  --color-category-trabalho: 0 112 243;
+  --color-category-casa: 16 185 129;
+  --color-category-familia: 124 58 237;
+  --color-category-compras: 245 158 11;
+}
+
+:root.dark {
+  --color-surface: 10 10 10;
+  --color-surface-dim: 0 0 0;
+  --color-surface-bright: 26 26 26;
+  --color-surface-container-lowest: 0 0 0;
+  --color-surface-container-low: 20 20 20;
+  --color-surface-container: 28 28 30;
+  --color-surface-container-high: 38 38 38;
+  --color-surface-container-highest: 47 47 47;
+  --color-on-surface: 245 245 245;
+  --color-on-surface-variant: 161 161 170;
+  --color-inverse-surface: 245 245 245;
+  --color-inverse-on-surface: 28 28 30;
+  --color-outline: 113 113 122;
+  --color-outline-variant: 63 63 70;
+  --color-primary: 91 155 255;
+  --color-on-primary: 0 26 67;
+  --color-primary-container: 10 42 86;
+  --color-on-primary-container: 216 226 255;
+  --color-secondary: 78 222 163;
+  --color-on-secondary: 0 42 23;
+  --color-secondary-container: 0 67 43;
+  --color-on-secondary-container: 111 251 190;
+  --color-tertiary: 210 187 255;
+  --color-on-tertiary: 56 0 109;
+  --color-error: 255 180 171;
+  --color-on-error: 105 0 5;
+  --color-error-container: 147 0 10;
+  --color-on-error-container: 255 218 214;
+  --color-background: 10 10 10;
+  --color-on-background: 245 245 245;
+  --color-category-trabalho: 0 112 243;
+  --color-category-casa: 16 185 129;
+  --color-category-familia: 124 58 237;
+  --color-category-compras: 245 158 11;
+}
+
 body {
   font-family: 'Geist', sans-serif;
   -webkit-font-smoothing: antialiased;
