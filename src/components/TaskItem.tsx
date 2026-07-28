@@ -48,6 +48,7 @@ export function TaskItem({ tarefa, destacada, onConcluir, onExcluir }: TaskItemP
         >
           {tarefa.titulo}
         </span>
+        {tarefa.nota && <p className="text-body-md text-on-surface-variant">{tarefa.nota}</p>}
         <div className="flex flex-wrap items-center gap-sm">
           {tarefa.categoria && (
             <span className="flex items-center gap-xs text-label-sm text-on-surface-variant">
