@@ -77,8 +77,9 @@ export function DayDetailPanel({
           />
           <button
             type="submit"
+            disabled={novoTitulo.trim() === ''}
             aria-label={textos.botaoAdicionar}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary disabled:cursor-not-allowed disabled:opacity-30"
           >
             <Plus size={18} />
           </button>

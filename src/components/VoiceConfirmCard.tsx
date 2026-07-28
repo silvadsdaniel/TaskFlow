@@ -132,7 +132,8 @@ export function VoiceConfirmCard({ sugestao, onConfirmar, onDescartar }: VoiceCo
           <button
             type="button"
             onClick={handleConfirmar}
-            className="flex flex-1 items-center justify-center gap-sm rounded-lg bg-inverse-surface py-sm text-label-md text-inverse-on-surface hover:opacity-90"
+            disabled={titulo.trim() === ''}
+            className="flex flex-1 items-center justify-center gap-sm rounded-lg bg-inverse-surface py-sm text-label-md text-inverse-on-surface hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <Check size={18} />
             {textos.botaoConfirmarTarefa}
