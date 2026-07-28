@@ -61,6 +61,7 @@ export function DayDetailPanel({
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          mensagemVazia={textos.diaSemTarefas}
         />
 
         <form
