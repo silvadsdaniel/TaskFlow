@@ -47,4 +47,7 @@ export const textos = {
   botaoDescartar: 'Descartar',
   botaoConfirmarTarefa: 'Confirmar tarefa',
   processandoTranscricao: 'Interpretando com IA…',
+  abaCalendario: 'Calendário',
+  botaoMesAnterior: 'Mês anterior',
+  botaoProximoMes: 'Próximo mês',
 } as const;
