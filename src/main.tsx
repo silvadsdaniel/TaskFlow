@@ -11,6 +11,8 @@ createRoot(document.getElementById('root')!).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js');
+    // Caminho relativo à base do app: em produção sob um subcaminho
+    // (ex.: github.io/TaskFlow/), "/sw.js" apontaria pra raiz errada do domínio.
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`);
   });
 }
