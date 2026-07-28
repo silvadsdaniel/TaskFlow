@@ -52,3 +52,9 @@ export function valorMinimoDatetimeLocal(): string {
     `T${preencher(agora.getHours())}:${preencher(agora.getMinutes())}`
   );
 }
+
+// Mesma regra usada na interpretação por IA: data sem hora vira 09:00.
+export function diaEmIso09h(dia: Date): string {
+  const preencher = (numero: number) => String(numero).padStart(2, '0');
+  return `${dia.getFullYear()}-${preencher(dia.getMonth() + 1)}-${preencher(dia.getDate())}T09:00:00-03:00`;
+}
