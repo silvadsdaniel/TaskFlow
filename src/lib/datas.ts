@@ -34,3 +34,21 @@ export function estaAtrasada(lembreteEm: string | null): boolean {
   if (lembreteEm === null) return false;
   return new Date(lembreteEm).getTime() < Date.now();
 }
+
+// input[type=datetime-local] retorna "AAAA-MM-DDTHH:mm", sem timezone.
+// Assumimos que o relógio do navegador está em America/Sao_Paulo (mesma
+// premissa de OFFSET_SAO_PAULO_MS usada no resto deste módulo).
+export function valorDatetimeLocalParaIso(valor: string): string {
+  return `${valor}:00-03:00`;
+}
+
+// input[type=datetime-local] usa o horário local do sistema operacional
+// (getHours/getMinutes), não UTC — por isso não usamos toISOString aqui.
+export function valorMinimoDatetimeLocal(): string {
+  const agora = new Date(Date.now() + 60_000);
+  const preencher = (numero: number) => String(numero).padStart(2, '0');
+  return (
+    `${agora.getFullYear()}-${preencher(agora.getMonth() + 1)}-${preencher(agora.getDate())}` +
+    `T${preencher(agora.getHours())}:${preencher(agora.getMinutes())}`
+  );
+}

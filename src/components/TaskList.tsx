@@ -4,11 +4,12 @@ import { TaskItem } from './TaskItem';
 
 type TaskListProps = {
   tarefas: Tarefa[];
+  tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
 };
 
-export function TaskList({ tarefas, onConcluir, onExcluir }: TaskListProps) {
+export function TaskList({ tarefas, tarefaDestacada, onConcluir, onExcluir }: TaskListProps) {
   if (tarefas.length === 0) {
     return (
       <p className="mt-lg text-center text-body-md text-on-surface-variant">
@@ -23,6 +24,7 @@ export function TaskList({ tarefas, onConcluir, onExcluir }: TaskListProps) {
         <TaskItem
           key={tarefa.id}
           tarefa={tarefa}
+          destacada={tarefa.id === tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
         />
