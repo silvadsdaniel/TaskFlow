@@ -7,4 +7,9 @@ export const textos = {
   botaoExcluir: 'Excluir tarefa',
   avisoDadosCorrompidos:
     'Não foi possível ler suas tarefas salvas. Uma cópia de segurança foi preservada e a lista foi reiniciada.',
+  filtroTodas: 'Todas',
+  abaHoje: 'Hoje',
+  abaSemana: 'Semana',
+  secaoSemData: 'Sem data',
+  semanaSemTarefas: 'Sem tarefas',
 } as const;
