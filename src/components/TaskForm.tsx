@@ -78,8 +78,9 @@ export function TaskForm({ onAdicionar, onIniciarVoz }: TaskFormProps) {
         {titulo === '' && suportadoReconhecimentoVoz() && <VoiceButton onClick={onIniciarVoz} />}
         <button
           type="submit"
+          disabled={titulo.trim() === ''}
           aria-label={textos.botaoAdicionar}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-105 active:scale-95"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100"
         >
           <Plus size={20} />
         </button>
