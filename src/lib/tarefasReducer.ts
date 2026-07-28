@@ -1,10 +1,11 @@
 import type { Categoria, EstadoPersistido, Tarefa } from '../types/tarefa';
 
 export type AcaoTarefas =
-  | { tipo: 'adicionar'; titulo: string; categoria: Categoria | null }
+  | { tipo: 'adicionar'; titulo: string; categoria: Categoria | null; lembreteEm: string | null }
   | { tipo: 'concluir'; id: string }
   | { tipo: 'excluir'; id: string }
-  | { tipo: 'editarTitulo'; id: string; titulo: string };
+  | { tipo: 'editarTitulo'; id: string; titulo: string }
+  | { tipo: 'marcarNotificada'; id: string };
 
 export function tarefasReducer(
   estado: EstadoPersistido,
@@ -20,7 +21,7 @@ export function tarefasReducer(
         titulo,
         nota: null,
         categoria: acao.categoria,
-        lembreteEm: null,
+        lembreteEm: acao.lembreteEm,
         concluida: false,
         criadaEm: new Date().toISOString(),
         concluidaEm: null,
@@ -56,6 +57,15 @@ export function tarefasReducer(
         ...estado,
         tarefas: estado.tarefas.map((tarefa) =>
           tarefa.id === acao.id ? { ...tarefa, titulo } : tarefa,
+        ),
+      };
+    }
+
+    case 'marcarNotificada': {
+      return {
+        ...estado,
+        tarefas: estado.tarefas.map((tarefa) =>
+          tarefa.id === acao.id ? { ...tarefa, notificada: true } : tarefa,
         ),
       };
     }
