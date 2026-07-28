@@ -1,7 +1,14 @@
 import type { Categoria, EstadoPersistido, Tarefa } from '../types/tarefa';
 
 export type AcaoTarefas =
-  | { tipo: 'adicionar'; titulo: string; categoria: Categoria | null; lembreteEm: string | null }
+  | {
+      tipo: 'adicionar';
+      titulo: string;
+      categoria: Categoria | null;
+      lembreteEm: string | null;
+      nota: string | null;
+      origem: 'texto' | 'voz';
+    }
   | { tipo: 'concluir'; id: string }
   | { tipo: 'excluir'; id: string }
   | { tipo: 'editarTitulo'; id: string; titulo: string }
@@ -19,14 +26,14 @@ export function tarefasReducer(
       const novaTarefa: Tarefa = {
         id: crypto.randomUUID(),
         titulo,
-        nota: null,
+        nota: acao.nota,
         categoria: acao.categoria,
         lembreteEm: acao.lembreteEm,
         concluida: false,
         criadaEm: new Date().toISOString(),
         concluidaEm: null,
         notificada: false,
-        origem: 'texto',
+        origem: acao.origem,
       };
       return { ...estado, tarefas: [novaTarefa, ...estado.tarefas] };
     }

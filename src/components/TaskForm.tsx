@@ -5,12 +5,15 @@ import { CATEGORIAS } from '../lib/categorias';
 import type { Categoria } from '../types/tarefa';
 import { CategoryChip } from './CategoryChip';
 import { valorDatetimeLocalParaIso, valorMinimoDatetimeLocal } from '../lib/datas';
+import { VoiceButton } from './VoiceButton';
+import { suportadoReconhecimentoVoz } from '../lib/voz';
 
 type TaskFormProps = {
   onAdicionar: (titulo: string, categoria: Categoria | null, lembreteEm: string | null) => void;
+  onIniciarVoz: () => void;
 };
 
-export function TaskForm({ onAdicionar }: TaskFormProps) {
+export function TaskForm({ onAdicionar, onIniciarVoz }: TaskFormProps) {
   const [titulo, setTitulo] = useState('');
   const [categoria, setCategoria] = useState<Categoria | null>(null);
   const [valorLembrete, setValorLembrete] = useState('');
@@ -72,6 +75,7 @@ export function TaskForm({ onAdicionar }: TaskFormProps) {
           maxLength={200}
           className="flex-grow bg-transparent px-sm text-body-md text-on-surface placeholder:text-outline-variant focus:outline-none"
         />
+        {titulo === '' && suportadoReconhecimentoVoz() && <VoiceButton onClick={onIniciarVoz} />}
         <button
           type="submit"
           aria-label={textos.botaoAdicionar}
