@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskFlow - Calendar View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#ffffff",
+                    "on-surface-variant": "#414754",
+                    "on-error-container": "#93000a",
+                    "primary-fixed-dim": "#aec6ff",
+                    "inverse-primary": "#aec6ff",
+                    "secondary-container": "#6cf8bb",
+                    "on-tertiary-fixed": "#25005a",
+                    "surface": "#faf9ff",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-container": "#ecedf8",
+                    "error-container": "#ffdad6",
+                    "inverse-on-surface": "#eff0fb",
+                    "surface-dim": "#d8d9e4",
+                    "tertiary-container": "#8c4dfd",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-secondary-container": "#00714d",
+                    "surface-bright": "#faf9ff",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#eaddff",
+                    "on-primary-container": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e0e2ed",
+                    "on-background": "#181b23",
+                    "error": "#ba1a1a",
+                    "outline": "#727786",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-fixed-variant": "#004397",
+                    "surface-container-low": "#f2f3fe",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed": "#002113",
+                    "on-surface": "#181b23",
+                    "on-tertiary": "#ffffff",
+                    "surface-tint": "#0059c5",
+                    "secondary-fixed-dim": "#4edea3",
+                    "outline-variant": "#c1c6d7",
+                    "on-tertiary-fixed-variant": "#5a00c6",
+                    "primary": "#0058c3",
+                    "primary-container": "#0070f3",
+                    "tertiary-fixed-dim": "#d2bbff",
+                    "surface-container-high": "#e6e7f3",
+                    "secondary": "#006c49",
+                    "primary-fixed": "#d8e2ff",
+                    "inverse-surface": "#2d3039",
+                    "tertiary": "#722ce3",
+                    "surface-container-highest": "#e0e2ed",
+                    "on-primary-fixed": "#001a43",
+                    "background": "#faf9ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "base": "4px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px",
+                    "xl": "48px",
+                    "sm": "8px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "md": "16px"
+            },
+            "fontFamily": {
+                    "display-md-mobile": ["Geist"],
+                    "label-md": ["Geist"],
+                    "body-lg": ["Geist"],
+                    "display-lg": ["Geist"],
+                    "display-md": ["Geist"],
+                    "label-sm": ["Geist"],
+                    "body-md": ["Geist"]
+            },
+            "fontSize": {
+                    "display-md-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "display-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                    "display-md": ["28px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c1c6d7; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #414754; }
+    </style>
+</head>
+<body class="bg-background text-on-background dark:bg-background dark:text-on-surface transition-colors duration-300">
+<!-- Top Navigation Bar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-background border-b border-outline-variant dark:border-outline z-50">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-md w-full">
+<div class="flex items-center gap-lg">
+<h1 class="font-display-md-mobile text-display-md-mobile font-bold text-on-surface dark:text-on-surface-variant">TaskFlow</h1>
+<!-- Navigation Segments -->
+<nav class="hidden md:flex gap-md items-center">
+<button class="text-on-surface-variant dark:text-outline hover:text-primary transition-colors cursor-pointer active:opacity-80 font-label-md text-label-md">Today</button>
+<button class="text-on-surface-variant dark:text-outline hover:text-primary transition-colors cursor-pointer active:opacity-80 font-label-md text-label-md">Week</button>
+<button class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1 font-label-md text-label-md font-bold">Calendar</button>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low dark:bg-surface-dim border border-outline-variant dark:border-outline rounded-lg focus:outline-none focus:border-primary text-body-md font-body-md w-64" placeholder="Search tasks..." type="text"/>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">settings</button>
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-xs border border-outline-variant">JD</div>
+</div>
+</div>
+</header>
+<main class="flex flex-col md:flex-row w-full max-w-[1440px] mx-auto min-h-[calc(100vh-72px)]">
+<!-- Side Navigation (Mobile Bottom, Desktop Left) -->
+<aside class="hidden md:flex flex-col w-64 h-screen p-md gap-sm bg-surface dark:bg-background border-r border-outline-variant dark:border-outline">
+<div class="px-2 py-4">
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest opacity-60">Calendar View</h2>
+</div>
+<nav class="flex flex-col gap-xs">
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:bg-surface-variant dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Mon</span>
+</button>
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:bg-surface-variant dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Tue</span>
+</button>
+<button class="flex items-center gap-md px-md py-sm text-on-primary-container bg-primary-container dark:bg-tertiary-container rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Wed</span>
+</button>
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:bg-surface-variant dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Thu</span>
+</button>
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:bg-surface-variant dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Fri</span>
+</button>
+</nav>
+<div class="mt-auto border-t border-outline-variant dark:border-outline pt-md flex flex-col gap-xs">
+<button class="flex items-center gap-md px-md py-sm text-on-surface-variant dark:text-outline hover:bg-surface-variant dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<section class="flex-grow flex flex-col overflow-hidden bg-background">
+<!-- Calendar Header Control -->
+<div class="px-margin-mobile md:px-margin-desktop py-lg flex items-center justify-between">
+<div class="flex items-center gap-md">
+<h2 class="font-display-md text-display-md text-on-surface">October 2023</h2>
+<div class="flex items-center gap-xs ml-md">
+<button class="p-1 hover:bg-surface-variant rounded-md transition-colors material-symbols-outlined text-on-surface-variant">chevron_left</button>
+<button class="p-1 hover:bg-surface-variant rounded-md transition-colors material-symbols-outlined text-on-surface-variant">chevron_right</button>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="px-md py-base border border-outline-variant dark:border-outline text-on-surface-variant hover:bg-surface-variant rounded-md font-label-md text-label-md transition-all active:scale-95">Today</button>
+<button class="hidden sm:flex items-center gap-xs px-md py-base bg-primary text-on-primary hover:opacity-90 rounded-md font-label-md text-label-md transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">add</span> New Task
+                    </button>
+</div>
+</div>
+<!-- Calendar Grid -->
+<div class="flex-grow px-margin-mobile md:px-margin-desktop pb-margin-desktop">
+<div class="calendar-grid border-l border-t border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim">
+<!-- Weekdays -->
+<div class="calendar-grid col-span-7 border-b border-outline-variant dark:border-outline">
+<div class="py-sm text-center font-label-sm text-label-sm text-outline uppercase tracking-wider">Mon</div>
+<div class="py-sm text-center font-label-sm text-label-sm text-outline uppercase tracking-wider">Tue</div>
+<div class="py-sm text-center font-label-sm text-label-sm text-outline uppercase tracking-wider">Wed</div>
+<div class="py-sm text-center font-label-sm text-label-sm text-outline uppercase tracking-wider">Thu</div>
+<div class="py-sm text-center font-label-sm text-label-sm text-outline uppercase tracking-wider">Fri</div>
+<div class="py-sm text-center font-label-sm text-label-sm text-outline uppercase tracking-wider font-bold">Sat</div>
+<div class="py-sm text-center font-label-sm text-label-sm text-outline uppercase tracking-wider font-bold">Sun</div>
+</div>
+<!-- 6x7 grid rows -->
+<!-- Row 1 -->
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">25</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">26</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">27</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">28</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">29</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">30</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer group">
+<span class="font-label-md text-label-md group-hover:text-primary">1</span>
+<div class="flex gap-1 mt-md">
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">2</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">3</span>
+<div class="flex gap-1 mt-md">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+</div>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer ring-2 ring-primary ring-inset z-10">
+<span class="font-label-md text-label-md font-bold text-primary">4</span>
+<div class="flex gap-1 mt-md">
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+</div>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">5</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">6</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">7</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">8</span>
+</div>
+<!-- Row 3 -->
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">9</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">10</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">11</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">12</span>
+<div class="flex gap-1 mt-md">
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+</div>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">13</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">14</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">15</span>
+</div>
+<!-- Row 4 -->
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">16</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">17</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">18</span>
+<div class="flex gap-1 mt-md">
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+</div>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">19</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">20</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">21</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">22</span>
+</div>
+<!-- Row 5 -->
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">23</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">24</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">25</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">26</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">27</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">28</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">29</span>
+</div>
+<!-- Row 6 -->
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">30</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-surface-dim hover:bg-surface-variant/10 transition-colors cursor-pointer">
+<span class="font-label-md text-label-md">31</span>
+</div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">1</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">2</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">3</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">4</span></div>
+<div class="calendar-cell min-h-[120px] p-sm border-r border-b border-outline-variant dark:border-outline opacity-40 bg-surface-variant/20"><span class="font-label-md text-label-md">5</span></div>
+</div>
+</div>
+</section>
+<!-- Right Detail Panel -->
+<aside class="hidden lg:flex flex-col w-80 h-screen border-l border-outline-variant dark:border-outline bg-surface dark:bg-background overflow-y-auto" id="detail-panel">
+<div class="p-lg">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-display-md text-display-md">Tasks</h3>
+<button class="material-symbols-outlined text-outline hover:text-on-surface transition-colors" onclick="document.getElementById('detail-panel').classList.add('hidden')">close</button>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-md">Wednesday, October 4</p>
+<div class="flex flex-col gap-md">
+<!-- Task Card 1 -->
+<div class="group relative bg-surface-container-lowest dark:bg-surface-dim p-md border border-outline-variant dark:border-outline rounded-lg transition-all hover:border-primary">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-lg"></div>
+<div class="flex items-start gap-md">
+<div class="w-5 h-5 rounded-md border-2 border-primary flex-shrink-0 mt-1 cursor-pointer hover:bg-primary/10 transition-colors"></div>
+<div class="flex-grow">
+<h4 class="font-label-md text-label-md font-bold text-on-surface">Design System Review</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Update calendar visual tokens</p>
+<div class="flex items-center gap-sm mt-md">
+<span class="material-symbols-outlined text-sm text-outline">schedule</span>
+<span class="font-label-sm text-label-sm text-outline">10:00 AM</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="group relative bg-surface-container-lowest dark:bg-surface-dim p-md border border-outline-variant dark:border-outline rounded-lg transition-all hover:border-secondary">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary rounded-l-lg"></div>
+<div class="flex items-start gap-md">
+<div class="w-5 h-5 rounded-md border-2 border-secondary flex-shrink-0 mt-1 cursor-pointer hover:bg-secondary/10 transition-colors"></div>
+<div class="flex-grow">
+<h4 class="font-label-md text-label-md font-bold text-on-surface">Weekly Standup</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Product alignment session</p>
+<div class="flex items-center gap-sm mt-md">
+<span class="material-symbols-outlined text-sm text-outline">schedule</span>
+<span class="font-label-sm text-label-sm text-outline">11:30 AM</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Card 3 -->
+<div class="group relative bg-surface-container-lowest dark:bg-surface-dim p-md border border-outline-variant dark:border-outline rounded-lg transition-all hover:border-tertiary">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary rounded-l-lg"></div>
+<div class="flex items-start gap-md">
+<div class="w-5 h-5 rounded-md border-2 border-tertiary flex-shrink-0 mt-1 cursor-pointer hover:bg-tertiary/10 transition-colors"></div>
+<div class="flex-grow">
+<h4 class="font-label-md text-label-md font-bold text-on-surface">Gym Session</h4>
+<div class="flex items-center gap-sm mt-md">
+<span class="material-symbols-outlined text-sm text-outline">schedule</span>
+<span class="font-label-sm text-label-sm text-outline">6:00 PM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento-style Analytics Card -->
+<div class="mt-xl p-lg bg-primary-container dark:bg-tertiary-container text-on-primary-container rounded-xl overflow-hidden relative">
+<div class="relative z-10">
+<h4 class="font-display-md text-display-md mb-xs">October Proj.</h4>
+<p class="font-body-md text-body-md opacity-90">You have completed 78% of your monthly goals.</p>
+<div class="mt-lg h-2 w-full bg-white/30 rounded-full">
+<div class="h-full w-4/5 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]">analytics</span>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Bottom Navigation Bar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-16 px-4 bg-surface dark:bg-background border-t border-outline-variant dark:border-outline z-50">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline active:bg-surface-variant scale-95 transition-transform">
+<span class="material-symbols-outlined">task_alt</span>
+<span class="font-label-sm text-label-sm">Tasks</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold active:bg-surface-variant scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="font-label-sm text-label-sm">Calendar</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline active:bg-surface-variant scale-95 transition-transform">
+<span class="material-symbols-outlined">archive</span>
+<span class="font-label-sm text-label-sm">Archive</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline active:bg-surface-variant scale-95 transition-transform">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Account</span>
+</button>
+</nav>
+<!-- Contextual FAB -->
+<button class="fixed bottom-20 right-6 md:bottom-10 md:right-10 w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+<script>
+        // Simple Interaction logic for demo
+        document.querySelectorAll('.calendar-cell').forEach(cell => {
+            cell.addEventListener('click', () => {
+                // Toggle active state
+                document.querySelectorAll('.calendar-cell').forEach(c => c.classList.remove('ring-2', 'ring-primary', 'ring-inset', 'z-10'));
+                cell.classList.add('ring-2', 'ring-primary', 'ring-inset', 'z-10');
+                
+                // Show/Refresh side panel (visual simulation)
+                const panel = document.getElementById('detail-panel');
+                if (panel.classList.contains('hidden')) {
+                    panel.classList.remove('hidden');
+                }
+            });
+        });
+
+        // Search highlight
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+</body></html>

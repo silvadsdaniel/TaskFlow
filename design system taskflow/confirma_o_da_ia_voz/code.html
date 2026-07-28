@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#ffffff",
+                        "on-surface-variant": "#414754",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#aec6ff",
+                        "inverse-primary": "#aec6ff",
+                        "secondary-container": "#6cf8bb",
+                        "on-tertiary-fixed": "#25005a",
+                        "surface": "#faf9ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-container": "#ecedf8",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#eff0fb",
+                        "surface-dim": "#d8d9e4",
+                        "tertiary-container": "#8c4dfd",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-secondary-container": "#00714d",
+                        "surface-bright": "#faf9ff",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#eaddff",
+                        "on-primary-container": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e0e2ed",
+                        "on-background": "#181b23",
+                        "error": "#ba1a1a",
+                        "outline": "#727786",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#004397",
+                        "surface-container-low": "#f2f3fe",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#002113",
+                        "on-surface": "#181b23",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#0059c5",
+                        "secondary-fixed-dim": "#4edea3",
+                        "outline-variant": "#c1c6d7",
+                        "on-tertiary-fixed-variant": "#5a00c6",
+                        "primary": "#0058c3",
+                        "primary-container": "#0070f3",
+                        "tertiary-fixed-dim": "#d2bbff",
+                        "surface-container-high": "#e6e7f3",
+                        "secondary": "#006c49",
+                        "primary-fixed": "#d8e2ff",
+                        "inverse-surface": "#2d3039",
+                        "tertiary": "#722ce3",
+                        "surface-container-highest": "#e0e2ed",
+                        "on-primary-fixed": "#001a43",
+                        "background": "#faf9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "xl": "48px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "display-md-mobile": ["Geist"],
+                        "label-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "display-md": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-md-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                        "display-md": ["28px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body { font-family: 'Geist', sans-serif; }
+        .glass-overlay {
+            backdrop-filter: blur(8px);
+            background-color: rgba(250, 249, 255, 0.7);
+        }
+        /* Custom Checkbox as per Style Guidance */
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #727786;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .custom-checkbox:checked {
+            background-color: #0058c3; /* Primary Blue */
+            border-color: #0058c3;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+            background-size: contain;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Top App Bar (Shared Component Implementation) -->
+<header class="w-full top-0 sticky bg-surface border-b border-outline-variant z-40 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-md">
+<div class="flex items-center gap-sm">
+<span class="font-display-md-mobile text-display-md-mobile font-bold text-on-surface">TaskFlow</span>
+</div>
+<nav class="hidden md:flex gap-lg items-center">
+<a class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 transition-colors" href="#">Today</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Week</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Calendar</a>
+</nav>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">settings</span>
+</div>
+</header>
+<main class="relative flex min-h-[calc(100vh-64px)] overflow-hidden">
+<!-- Side Navigation (Shared Component Implementation) -->
+<aside class="hidden md:flex flex-col w-64 h-full p-md gap-sm bg-surface border-r border-outline-variant">
+<div class="mb-lg px-xs">
+<h2 class="font-display-md text-display-md text-primary mb-xs">Navigation</h2>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-70">Calendar View</p>
+</div>
+<div class="flex flex-col gap-xs flex-grow">
+<div class="flex items-center gap-md p-sm text-on-primary-container bg-primary-container rounded-lg cursor-pointer">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Mon</span>
+</div>
+<div class="flex items-center gap-md p-sm text-on-surface-variant hover:bg-surface-variant rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Tue</span>
+</div>
+<div class="flex items-center gap-md p-sm text-on-surface-variant hover:bg-surface-variant rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Wed</span>
+</div>
+<div class="flex items-center gap-md p-sm text-on-surface-variant hover:bg-surface-variant rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Thu</span>
+</div>
+<div class="flex items-center gap-md p-sm text-on-surface-variant hover:bg-surface-variant rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Fri</span>
+</div>
+</div>
+<div class="mt-auto pt-md border-t border-outline-variant">
+<div class="flex items-center gap-md p-sm text-on-surface-variant hover:bg-surface-variant rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</div>
+<div class="flex items-center gap-md p-sm text-on-surface-variant hover:bg-surface-variant rounded-lg cursor-pointer transition-all">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area: The Task List (Background for the confirmation card) -->
+<div class="flex-grow p-margin-mobile md:p-margin-desktop bg-background z-0 overflow-y-auto">
+<div class="max-w-4xl mx-auto space-y-lg">
+<div class="flex justify-between items-end border-b border-outline-variant pb-md">
+<h1 class="font-display-lg text-display-lg">Today's Focus</h1>
+<div class="flex gap-sm">
+<button class="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">add</span> New Task
+                        </button>
+</div>
+</div>
+<!-- Existing Tasks (Demonstrating Style Guidance) -->
+<div class="space-y-sm">
+<!-- Task Item 1 -->
+<div class="flex items-center gap-md p-md bg-surface border border-outline-variant rounded-lg relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-primary"></div>
+<input checked="" class="custom-checkbox" type="checkbox"/>
+<div class="flex-grow">
+<h3 class="font-body-lg text-body-lg text-on-surface">Review final design system specs</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Update the primary color tokens and spacing units</p>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">schedule</span>
+<span class="font-label-sm text-label-sm text-outline">09:00 AM</span>
+</div>
+</div>
+<!-- Task Item 2 -->
+<div class="flex items-center gap-md p-md bg-surface border border-outline-variant rounded-lg relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-secondary-fixed-dim"></div>
+<input class="custom-checkbox" type="checkbox"/>
+<div class="flex-grow">
+<h3 class="font-body-lg text-body-lg text-on-surface">Client weekly sync call</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Discuss Q3 project roadmap and deliverables</p>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">schedule</span>
+<span class="font-label-sm text-label-sm text-outline">11:30 AM</span>
+</div>
+</div>
+<!-- Task Item 3 -->
+<div class="flex items-center gap-md p-md bg-surface border border-outline-variant rounded-lg relative overflow-hidden group opacity-60">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-tertiary"></div>
+<input class="custom-checkbox" type="checkbox"/>
+<div class="flex-grow">
+<h3 class="font-body-lg text-body-lg text-on-surface">Grocery run</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Pick up ingredients for dinner</p>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-outline">shopping_cart</span>
+<span class="font-label-sm text-label-sm text-outline">05:00 PM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Confirmation Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center glass-overlay px-margin-mobile">
+<div class="w-full max-w-md bg-surface border border-primary shadow-xl rounded-xl p-md space-y-md animate-in fade-in zoom-in duration-300">
+<!-- Card Header -->
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-sm px-sm py-[2px] bg-primary-fixed text-on-primary-fixed rounded-full">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span class="font-label-sm text-label-sm">Voice Input Detected</span>
+</div>
+<button class="text-outline hover:text-on-surface-variant p-xs">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Editable Content Area -->
+<div class="space-y-md pt-sm">
+<div class="group border-b border-outline-variant focus-within:border-primary transition-colors">
+<label class="font-label-sm text-label-sm text-outline group-focus-within:text-primary">Task Title</label>
+<input class="w-full bg-transparent border-none p-0 py-xs font-display-md text-display-md focus:ring-0 text-on-surface" placeholder="Task title..." type="text" value="Schedule dental cleaning for next Tuesday"/>
+</div>
+<div class="group border-b border-outline-variant focus-within:border-primary transition-colors">
+<label class="font-label-sm text-label-sm text-outline group-focus-within:text-primary">Notes</label>
+<textarea class="w-full bg-transparent border-none p-0 py-xs font-body-md text-body-md focus:ring-0 text-on-surface-variant resize-none" placeholder="Add more details..." rows="2">Call the downtown office and mention the new insurance card.</textarea>
+</div>
+<div class="flex flex-wrap gap-md">
+<div class="flex-1 group border-b border-outline-variant focus-within:border-primary transition-colors">
+<label class="font-label-sm text-label-sm text-outline group-focus-within:text-primary">Date &amp; Time</label>
+<div class="flex items-center gap-xs py-xs">
+<span class="material-symbols-outlined text-outline text-[18px]">calendar_month</span>
+<input class="w-full bg-transparent border-none p-0 font-body-md text-body-md focus:ring-0 text-on-surface" type="text" value="Oct 24, 2:00 PM"/>
+</div>
+</div>
+<div class="flex-shrink-0 group">
+<label class="font-label-sm text-label-sm text-outline">Category</label>
+<div class="mt-xs">
+<!-- Suggested Category Chip - Active State -->
+<div class="inline-flex items-center gap-sm px-md py-sm bg-primary text-on-primary rounded-lg font-label-md cursor-pointer transition-all active:scale-95">
+<span class="material-symbols-outlined text-[16px]">work</span>
+                                    Work
+                                </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Atmospheric Waveform Interaction -->
+<div class="h-1 bg-surface-variant rounded-full overflow-hidden relative">
+<div class="absolute inset-0 bg-primary w-2/3 animate-pulse"></div>
+</div>
+<!-- Footer Actions -->
+<div class="flex gap-sm pt-sm">
+<button class="flex-1 py-md border border-outline-variant text-on-surface-variant font-label-md rounded-lg hover:bg-surface-variant transition-colors flex justify-center items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+                        Discard
+                    </button>
+<button class="flex-1 py-md bg-inverse-surface text-inverse-on-surface font-label-md rounded-lg hover:opacity-90 transition-all flex justify-center items-center gap-sm shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[20px]">check</span>
+                        Confirm Task
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shared Component Implementation) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-16 px-4 bg-surface border-t border-outline-variant z-50">
+<div class="flex flex-col items-center justify-center text-primary font-bold transition-transform scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+<span class="font-label-sm text-label-sm">Tasks</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant transition-transform">
+<span class="material-symbols-outlined">list</span>
+<span class="font-label-sm text-label-sm">Lists</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant transition-transform">
+<span class="material-symbols-outlined">archive</span>
+<span class="font-label-sm text-label-sm">Archive</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant active:bg-surface-variant transition-transform">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Account</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction for the voice badge pulse
+        const badge = document.querySelector('.bg-primary-fixed');
+        if (badge) {
+            let active = true;
+            setInterval(() => {
+                if(active) {
+                    badge.style.opacity = '0.8';
+                } else {
+                    badge.style.opacity = '1';
+                }
+                active = !active;
+            }, 800);
+        }
+
+        // Handle Close/Discard logic
+        const closeBtn = document.querySelector('.material-symbols-outlined:nth-child(2)');
+        const overlay = document.querySelector('.glass-overlay');
+        
+        const removeOverlay = () => {
+            overlay.classList.add('opacity-0', 'scale-95');
+            overlay.style.transition = 'all 0.3s ease';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        };
+
+        document.querySelectorAll('button').forEach(btn => {
+           if(btn.textContent.includes('Confirm') || btn.textContent.includes('Discard')) {
+               btn.addEventListener('click', removeOverlay);
+           }
+        });
+    </script>
+</body></html>

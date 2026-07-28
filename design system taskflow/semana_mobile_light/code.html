@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TaskFlow - Week View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+        
+        body {
+            font-family: 'Geist', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .category-mix-bar {
+            height: 2px;
+            width: 100%;
+            display: flex;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .task-card-intent {
+            width: 4px;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .custom-checkbox:checked {
+            background-color: currentColor;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#0058c3",
+                        "on-primary-container": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#d2bbff",
+                        "on-primary-fixed-variant": "#004397",
+                        "tertiary-fixed": "#eaddff",
+                        "secondary": "#006c49",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-secondary-fixed": "#002113",
+                        "on-surface-variant": "#414754",
+                        "primary-container": "#0070f3",
+                        "on-tertiary-container": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f2f3fe",
+                        "inverse-primary": "#aec6ff",
+                        "on-secondary-container": "#00714d",
+                        "surface-variant": "#e0e2ed",
+                        "surface-tint": "#0059c5",
+                        "surface": "#faf9ff",
+                        "outline": "#727786",
+                        "surface-bright": "#faf9ff",
+                        "tertiary": "#722ce3",
+                        "surface-container": "#ecedf8",
+                        "surface-container-highest": "#e0e2ed",
+                        "outline-variant": "#c1c6d7",
+                        "on-background": "#181b23",
+                        "background": "#faf9ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#25005a",
+                        "tertiary-container": "#8c4dfd",
+                        "inverse-surface": "#2d3039",
+                        "primary-fixed": "#d8e2ff",
+                        "inverse-on-surface": "#eff0fb",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e6e7f3",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#181b23",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d8d9e4",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#5a00c6",
+                        "secondary-container": "#6cf8bb",
+                        "primary-fixed-dim": "#aec6ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary-fixed": "#001a43",
+                        "category-work": "#0058c3",
+                        "category-personal": "#722ce3",
+                        "category-family": "#006c49",
+                        "category-shopping": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "gutter": "16px",
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "xl": "48px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "display-md-mobile": ["Geist"],
+                        "label-md": ["Geist"],
+                        "display-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-md-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "display-md": ["28px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-40 bg-surface/80 backdrop-blur-md border-b border-outline-variant flex justify-between items-center px-margin-mobile md:px-margin-desktop py-md">
+<div class="font-display-md-mobile text-display-md-mobile text-on-surface">TaskFlow</div>
+<nav class="hidden md:flex gap-md items-center">
+<span class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer">Today</span>
+<span class="font-label-md text-label-md text-primary border-b-2 border-primary pb-1 cursor-pointer">Week</span>
+<span class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors cursor-pointer">Calendar</span>
+</nav>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer active:opacity-80">settings</span>
+<div class="w-8 h-8 rounded-full bg-surface-container border border-outline-variant overflow-hidden">
+<img alt="Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh1V3fhwF9He9UMAmKKqdCFbWOibd6sYHOuOY2hQ_Bfm2IDUvazsHdyT6DwoDRgDGMveQP3CVJSJbOL0vKl6zBH1o7nsEX3dFz6lkl75B-L6mTdXcM_solhr49JKWsl6GoCi_aBfexsIAY3_zEMkO813xA3Ie2wC6mhd-rb1MXPL7KOLO35EW40Q3E0ZSLYu5-E0fTiIDqmugFYmxUYBd_G030b8zIw_1d0MAGSe17qkdpn-myAKqLBZeHl1BPkfBWo95GNwe8yznx"/>
+</div>
+</div>
+</header>
+<main class="max-w-2xl mx-auto px-margin-mobile pt-md">
+<!-- Date Group: Today -->
+<section class="mb-lg">
+<header class="sticky top-[64px] bg-background/95 backdrop-blur-sm z-30 pt-md pb-xs">
+<div class="flex justify-between items-end mb-xs">
+<h2 class="font-display-md-mobile text-display-md-mobile text-on-surface">Today, Mon 27</h2>
+<span class="font-label-sm text-label-sm text-outline">4 Tasks</span>
+</div>
+<div class="category-mix-bar bg-surface-container">
+<div class="bg-category-work h-full" style="width: 40%"></div>
+<div class="bg-category-family h-full" style="width: 30%"></div>
+<div class="bg-category-personal h-full" style="width: 20%"></div>
+<div class="bg-category-shopping h-full" style="width: 10%"></div>
+</div>
+</header>
+<div class="space-y-sm mt-md">
+<!-- Task Card 1 -->
+<div class="task-card relative bg-surface border border-outline-variant p-md rounded-lg flex items-start gap-md overflow-hidden transition-all active:scale-[0.98]">
+<div class="task-card-intent bg-category-work"></div>
+<input class="custom-checkbox w-5 h-5 rounded-[4px] border-2 border-outline-variant bg-transparent text-category-work focus:ring-0 cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center gap-xs mb-1">
+<div class="w-1.5 h-1.5 rounded-full bg-category-work"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Work</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface">Finalize project proposal</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-label-sm text-label-sm">09:00 AM</span>
+</div>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="task-card relative bg-surface border border-outline-variant p-md rounded-lg flex items-start gap-md overflow-hidden transition-all active:scale-[0.98]">
+<div class="task-card-intent bg-category-personal"></div>
+<input class="custom-checkbox w-5 h-5 rounded-[4px] border-2 border-outline-variant bg-transparent text-category-personal focus:ring-0 cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center gap-xs mb-1">
+<div class="w-1.5 h-1.5 rounded-full bg-category-personal"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Personal</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface">Daily workout - Leg day</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-label-sm text-label-sm">05:30 PM</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Date Group: Tomorrow -->
+<section class="mb-lg">
+<header class="sticky top-[64px] bg-background/95 backdrop-blur-sm z-30 pt-md pb-xs">
+<div class="flex justify-between items-end mb-xs">
+<h2 class="font-display-md-mobile text-display-md-mobile text-on-surface">Tomorrow, Tue 28</h2>
+<span class="font-label-sm text-label-sm text-outline">2 Tasks</span>
+</div>
+<div class="category-mix-bar bg-surface-container">
+<div class="bg-category-personal h-full" style="width: 50%"></div>
+<div class="bg-category-work h-full" style="width: 50%"></div>
+</div>
+</header>
+<div class="space-y-sm mt-md">
+<div class="task-card relative bg-surface border border-outline-variant p-md rounded-lg flex items-start gap-md overflow-hidden transition-all active:scale-[0.98]">
+<div class="task-card-intent bg-category-family"></div>
+<input class="custom-checkbox w-5 h-5 rounded-[4px] border-2 border-outline-variant bg-transparent text-category-family focus:ring-0 cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center gap-xs mb-1">
+<div class="w-1.5 h-1.5 rounded-full bg-category-family"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Family</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface">Dinner with parents</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-label-sm text-label-sm">07:00 PM</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty Day: Wednesday -->
+<section class="mb-sm">
+<div class="flex justify-between items-center py-sm border-b border-outline-variant opacity-60">
+<h2 class="font-body-md text-body-md text-on-surface">Wed 29</h2>
+<span class="font-label-sm text-label-sm italic text-on-surface-variant">No tasks planned</span>
+</div>
+</section>
+<!-- Empty Day: Thursday -->
+<section class="mb-sm">
+<div class="flex justify-between items-center py-sm border-b border-outline-variant opacity-60">
+<h2 class="font-body-md text-body-md text-on-surface">Thu 30</h2>
+<span class="font-label-sm text-label-sm italic text-on-surface-variant">No tasks planned</span>
+</div>
+</section>
+<!-- Date Group: Friday -->
+<section class="mb-lg">
+<header class="sticky top-[64px] bg-background/95 backdrop-blur-sm z-30 pt-md pb-xs">
+<div class="flex justify-between items-end mb-xs">
+<h2 class="font-display-md-mobile text-display-md-mobile text-on-surface">Fri 31</h2>
+<span class="font-label-sm text-label-sm text-outline">1 Task</span>
+</div>
+<div class="category-mix-bar bg-surface-container">
+<div class="bg-category-work h-full" style="width: 100%"></div>
+</div>
+</header>
+<div class="space-y-sm mt-md">
+<div class="task-card relative bg-surface border border-outline-variant p-md rounded-lg flex items-start gap-md overflow-hidden transition-all active:scale-[0.98]">
+<div class="task-card-intent bg-category-work"></div>
+<input class="custom-checkbox w-5 h-5 rounded-[4px] border-2 border-outline-variant bg-transparent text-category-work focus:ring-0 cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center gap-xs mb-1">
+<div class="w-1.5 h-1.5 rounded-full bg-category-work"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Work</span>
+</div>
+<h3 class="font-body-lg text-body-lg text-on-surface">Weekly Review</h3>
+<div class="flex items-center gap-xs mt-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="font-label-sm text-label-sm">04:00 PM</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Fixed Bottom Input -->
+<div class="fixed bottom-16 md:bottom-0 left-0 w-full px-margin-mobile py-md bg-gradient-to-t from-background via-background to-transparent z-40">
+<div class="max-w-2xl mx-auto relative group">
+<div class="relative flex items-center bg-surface border border-outline-variant rounded-full overflow-hidden px-md py-sm shadow-xl">
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-body-md font-body-md text-on-surface placeholder:text-outline" placeholder="Add a task for this week..." type="text"/>
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-on-primary hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-16 px-4 bg-surface border-t border-outline-variant z-50">
+<div class="flex flex-col items-center justify-center text-on-surface-variant scale-95 transition-transform active:bg-surface-variant">
+<span class="material-symbols-outlined">task_alt</span>
+<span class="font-label-sm text-label-sm">Tasks</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary font-bold scale-95 transition-transform active:bg-surface-variant">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">list</span>
+<span class="font-label-sm text-label-sm">Lists</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant scale-95 transition-transform active:bg-surface-variant">
+<span class="material-symbols-outlined">archive</span>
+<span class="font-label-sm text-label-sm">Archive</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant scale-95 transition-transform active:bg-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Account</span>
+</div>
+</nav>
+<script>
+    // Micro-interaction for checkboxes
+    document.querySelectorAll('.custom-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const card = this.closest('.task-card');
+            if (this.checked) {
+                card.style.opacity = '0.5';
+                card.style.transform = 'scale(0.98)';
+            } else {
+                card.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+            }
+        });
+    });
+
+    // Floating label/header logic for a more "app-like" feel
+    let lastScrollTop = 0;
+    window.addEventListener("scroll", function() {
+        let st = window.pageYOffset || document.documentElement.scrollTop;
+        const inputArea = document.querySelector('.fixed.bottom-16');
+        if (st > lastScrollTop && st > 50) {
+            // Scroll down
+            inputArea.style.transform = "translateY(100px)";
+            inputArea.style.transition = "transform 0.3s ease-out";
+        } else {
+            // Scroll up
+            inputArea.style.transform = "translateY(0)";
+        }
+        lastScrollTop = st <= 0 ? 0 : st;
+    }, false);
+</script>
+</body></html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom checkbox logic from Style Guidance */
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #727786;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .task-checkbox.checked-work { background-color: #0058c3; border-color: #0058c3; }
+        .task-checkbox.checked-personal { background-color: #722ce3; border-color: #722ce3; }
+        .task-checkbox.checked-shopping { background-color: #006c49; border-color: #006c49; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#ffffff",
+                        "on-surface-variant": "#414754",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#aec6ff",
+                        "inverse-primary": "#aec6ff",
+                        "secondary-container": "#6cf8bb",
+                        "on-tertiary-fixed": "#25005a",
+                        "surface": "#faf9ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-container": "#ecedf8",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#eff0fb",
+                        "surface-dim": "#d8d9e4",
+                        "tertiary-container": "#8c4dfd",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-secondary-container": "#00714d",
+                        "surface-bright": "#faf9ff",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#eaddff",
+                        "on-primary-container": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#e0e2ed",
+                        "on-background": "#181b23",
+                        "error": "#ba1a1a",
+                        "outline": "#727786",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#004397",
+                        "surface-container-low": "#f2f3fe",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#002113",
+                        "on-surface": "#181b23",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#0059c5",
+                        "secondary-fixed-dim": "#4edea3",
+                        "outline-variant": "#c1c6d7",
+                        "on-tertiary-fixed-variant": "#5a00c6",
+                        "primary": "#0058c3",
+                        "primary-container": "#0070f3",
+                        "tertiary-fixed-dim": "#d2bbff",
+                        "surface-container-high": "#e6e7f3",
+                        "secondary": "#006c49",
+                        "primary-fixed": "#d8e2ff",
+                        "inverse-surface": "#2d3039",
+                        "tertiary": "#722ce3",
+                        "surface-container-highest": "#e0e2ed",
+                        "on-primary-fixed": "#001a43",
+                        "background": "#faf9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "xl": "48px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "display-md-mobile": ["Geist"],
+                        "label-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "display-md": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-md-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "display-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500"}],
+                        "display-md": ["28px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-background border-b border-outline-variant dark:border-outline flex justify-between items-center px-margin-mobile md:px-margin-desktop py-md w-full z-50">
+<div class="font-display-md-mobile text-display-md-mobile font-bold text-on-surface dark:text-on-surface-variant">TaskFlow</div>
+<nav class="hidden md:flex items-center gap-lg">
+<span class="font-label-md text-label-md text-on-surface-variant dark:text-outline hover:text-primary transition-colors cursor-pointer active:opacity-80">Today</span>
+<span class="font-label-md text-label-md text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1 cursor-pointer active:opacity-80">Week</span>
+<span class="font-label-md text-label-md text-on-surface-variant dark:text-outline hover:text-primary transition-colors cursor-pointer active:opacity-80">Calendar</span>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="p-base rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a young user with a minimalist aesthetic, high-key lighting, soft white background, clean and modern style for a task management application user interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6nE8wCn8XLAijTeGpFP4TefVyeb-w0pyWpm6yddG6PCDNGZPRqUVPCfSBklFgHetYTriKdodM-e67SIQX26m7w1lUSKCihoLqrL6bKxydb3yup1tY2Sgg5KD7qPTqwZVgZChZT8kBjcZ9slknjEjrMso5bQEDrRUL-uCAf0ExtUy7EEQUEN-O69AjkZIZ-UnQLc7Uja9yjAjQm63OPWJlRi84y6Ea08XDY5WH37Ys228B852QfjrmckEJK9XVJFyJstVE4VimyqI2"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-[640px] mx-auto min-h-screen px-margin-mobile py-lg pb-32">
+<!-- Segmented Navigation (Mobile View / Filter) -->
+<div class="flex bg-surface-container-low p-base rounded-lg mb-lg border border-outline-variant">
+<button class="flex-1 py-sm px-md text-center font-label-md text-label-md bg-surface text-primary shadow-sm rounded-md transition-all">List</button>
+<button class="flex-1 py-sm px-md text-center font-label-md text-label-md text-on-surface-variant hover:bg-surface-variant transition-all">Calendar</button>
+<button class="flex-1 py-sm px-md text-center font-label-md text-label-md text-on-surface-variant hover:bg-surface-variant transition-all">Focus</button>
+</div>
+<!-- Continuous Scroll View -->
+<div class="flex flex-col gap-lg">
+<!-- Tomorrow - Tue, 28 -->
+<section class="flex flex-col gap-sm">
+<header class="sticky top-16 bg-surface py-base z-40 border-b border-outline-variant/30">
+<div class="flex justify-between items-end mb-base">
+<h2 class="font-display-md text-display-md text-on-surface">Tomorrow <span class="text-on-surface-variant font-normal opacity-60 text-body-lg">Tue, 28</span></h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant">4 Tasks</span>
+</div>
+<!-- Proportional Category Bar -->
+<div class="w-full h-1 bg-surface-container flex rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 50%;"></div>
+<div class="h-full bg-tertiary" style="width: 25%;"></div>
+<div class="h-full bg-secondary" style="width: 25%;"></div>
+</div>
+</header>
+<div class="flex flex-col gap-sm mt-sm">
+<!-- Task Card -->
+<div class="relative bg-surface border border-outline-variant rounded-sm p-md flex items-start gap-md group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="task-checkbox mt-0.5 checked-work" onclick="this.classList.toggle('opacity-50')">
+<span class="material-symbols-outlined text-on-primary text-[14px]">check</span>
+</div>
+<div class="flex-1">
+<h3 class="font-body-lg text-body-lg text-on-surface leading-tight">Finalize Q3 Design System documentation</h3>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 09:00 AM
+                                </span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-primary">Work</span>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</div>
+<!-- Task Card -->
+<div class="relative bg-surface border border-outline-variant rounded-sm p-md flex items-start gap-md group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary"></div>
+<div class="task-checkbox mt-0.5"></div>
+<div class="flex-1">
+<h3 class="font-body-lg text-body-lg text-on-surface leading-tight">Weekly Sync with Product Team</h3>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 11:30 AM
+                                </span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-tertiary">Family</span>
+</div>
+</div>
+</div>
+<!-- Task Card -->
+<div class="relative bg-surface border border-outline-variant rounded-sm p-md flex items-start gap-md group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary"></div>
+<div class="task-checkbox mt-0.5"></div>
+<div class="flex-1">
+<h3 class="font-body-lg text-body-lg text-on-surface leading-tight">Pick up grocery order</h3>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 05:00 PM
+                                </span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-secondary">Shopping</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Wed, 29 (Collapsed/Empty) -->
+<section class="border-y border-outline-variant/30 py-sm flex justify-between items-center group cursor-pointer hover:bg-surface-container-low transition-colors">
+<div class="flex items-baseline gap-sm">
+<span class="font-label-md text-label-md text-on-surface font-bold">Wed, 29</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant opacity-60">No tasks scheduled</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">add_circle</span>
+</section>
+<!-- Thu, 30 -->
+<section class="flex flex-col gap-sm">
+<header class="sticky top-16 bg-surface py-base z-30 border-b border-outline-variant/30">
+<div class="flex justify-between items-end mb-base">
+<h2 class="font-display-md text-display-md text-on-surface">Thu, 30</h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2 Tasks</span>
+</div>
+<div class="w-full h-1 bg-surface-container flex rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 100%;"></div>
+</div>
+</header>
+<div class="flex flex-col gap-sm mt-sm">
+<div class="relative bg-surface border border-outline-variant rounded-sm p-md flex items-start gap-md group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="task-checkbox mt-0.5"></div>
+<div class="flex-1">
+<h3 class="font-body-lg text-body-lg text-on-surface leading-tight">Design Critique: Flow v2</h3>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 02:00 PM
+                                </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Fri, 31 (Collapsed/Empty) -->
+<section class="border-y border-outline-variant/30 py-sm flex justify-between items-center group cursor-pointer hover:bg-surface-container-low transition-colors">
+<div class="flex items-baseline gap-sm">
+<span class="font-label-md text-label-md text-on-surface font-bold">Fri, 31</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant opacity-60">No tasks scheduled</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">add_circle</span>
+</section>
+<!-- Sat, 01 -->
+<section class="flex flex-col gap-sm">
+<header class="sticky top-16 bg-surface py-base z-30 border-b border-outline-variant/30">
+<div class="flex justify-between items-end mb-base">
+<h2 class="font-display-md text-display-md text-on-surface">Sat, 01</h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant">1 Task</span>
+</div>
+<div class="w-full h-1 bg-surface-container flex rounded-full overflow-hidden">
+<div class="h-full bg-secondary" style="width: 100%;"></div>
+</div>
+</header>
+<div class="flex flex-col gap-sm mt-sm">
+<div class="relative bg-surface border border-outline-variant rounded-sm p-md flex items-start gap-md group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary"></div>
+<div class="task-checkbox mt-0.5"></div>
+<div class="flex-1">
+<h3 class="font-body-lg text-body-lg text-on-surface leading-tight">Farmer's Market morning run</h3>
+<div class="flex items-center gap-sm mt-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 08:30 AM
+                                </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center h-16 px-4 bg-surface dark:bg-background border-t border-outline-variant dark:border-outline z-50">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline scale-95 transition-transform active:bg-surface-variant px-sm py-xs rounded-lg">
+<span class="material-symbols-outlined">task_alt</span>
+<span class="font-label-sm text-label-sm">Tasks</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold scale-95 transition-transform active:bg-surface-variant px-sm py-xs rounded-lg">
+<span class="material-symbols-outlined">list</span>
+<span class="font-label-sm text-label-sm">Lists</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline scale-95 transition-transform active:bg-surface-variant px-sm py-xs rounded-lg">
+<span class="material-symbols-outlined">archive</span>
+<span class="font-label-sm text-label-sm">Archive</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline scale-95 transition-transform active:bg-surface-variant px-sm py-xs rounded-lg">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Account</span>
+</div>
+</nav>
+<!-- FAB for adding task -->
+<button class="fixed bottom-20 right-margin-mobile md:bottom-margin-desktop md:right-margin-desktop bg-primary text-on-primary w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-primary-container transition-all active:scale-90 z-40">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+<script>
+        // Simple micro-interaction for task checking
+        document.querySelectorAll('.task-checkbox').forEach(box => {
+            box.addEventListener('click', function() {
+                const icon = this.querySelector('span');
+                if (icon) {
+                    this.innerHTML = '';
+                } else {
+                    this.innerHTML = '<span class="material-symbols-outlined text-on-primary text-[14px]">check</span>';
+                }
+            });
+        });
+    </script>
+</body></html>

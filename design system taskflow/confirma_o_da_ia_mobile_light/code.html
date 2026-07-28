@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Geist', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        /* Custom scrollbar for minimalist look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c6d7;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#0058c3",
+                        "on-primary-container": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed-dim": "#d2bbff",
+                        "on-primary-fixed-variant": "#004397",
+                        "tertiary-fixed": "#eaddff",
+                        "secondary": "#006c49",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-secondary-fixed": "#002113",
+                        "on-surface-variant": "#414754",
+                        "primary-container": "#0070f3",
+                        "on-tertiary-container": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f2f3fe",
+                        "inverse-primary": "#aec6ff",
+                        "on-secondary-container": "#00714d",
+                        "surface-variant": "#e0e2ed",
+                        "surface-tint": "#0059c5",
+                        "surface": "#faf9ff",
+                        "outline": "#727786",
+                        "surface-bright": "#faf9ff",
+                        "tertiary": "#722ce3",
+                        "surface-container": "#ecedf8",
+                        "surface-container-highest": "#e0e2ed",
+                        "outline-variant": "#c1c6d7",
+                        "on-background": "#181b23",
+                        "background": "#faf9ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#25005a",
+                        "tertiary-container": "#8c4dfd",
+                        "inverse-surface": "#2d3039",
+                        "primary-fixed": "#d8e2ff",
+                        "inverse-on-surface": "#eff0fb",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e6e7f3",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#181b23",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d8d9e4",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#5a00c6",
+                        "secondary-container": "#6cf8bb",
+                        "primary-fixed-dim": "#aec6ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary-fixed": "#001a43"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "gutter": "16px",
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "xl": "48px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "display-md-mobile": ["Geist"],
+                        "label-md": ["Geist"],
+                        "display-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-sm": ["Geist"],
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"]
+                    },
+                    "fontSize": {
+                        "display-md-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "display-md": ["28px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "500" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface overflow-hidden h-screen flex items-end">
+<!-- Backdrop Simulation -->
+<div class="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-0">
+<div class="p-margin-mobile flex flex-col gap-lg opacity-40">
+<!-- Simulated background content -->
+<div class="h-24 w-full bg-surface-container-highest/20 border border-outline/20 rounded-lg"></div>
+<div class="h-48 w-full bg-surface-container-highest/20 border border-outline/20 rounded-lg"></div>
+</div>
+</div>
+<!-- AI Task Confirmation Bottom Sheet -->
+<div class="relative z-50 w-full bg-surface border-t border-primary/20 shadow-[0_-8px_30px_rgb(0,0,0,0.08)] rounded-t-xl transition-transform duration-500 ease-out translate-y-0 max-h-[813px] flex flex-col" id="bottomSheet">
+<!-- Handlebar -->
+<div class="w-full flex justify-center py-md">
+<div class="w-12 h-1 bg-outline-variant rounded-full"></div>
+</div>
+<div class="px-margin-mobile pb-xl overflow-y-auto">
+<!-- Header section -->
+<div class="flex justify-between items-start mb-lg">
+<div>
+<div class="inline-flex items-center gap-xs px-sm py-[2px] bg-primary-fixed text-on-primary-fixed rounded-full mb-sm">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span class="font-label-sm text-label-sm">Voice Input Detected</span>
+</div>
+<h1 class="font-display-md-mobile text-display-md-mobile text-on-surface tracking-tight">Confirm Task</h1>
+</div>
+<button aria-label="Close" class="p-sm text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Task Form Area -->
+<div class="flex flex-col gap-lg">
+<!-- Editable Title -->
+<div class="group border-b border-outline-variant focus-within:border-primary transition-colors">
+<label class="block font-label-sm text-label-sm text-outline group-focus-within:text-primary mb-0">Task Title</label>
+<input class="w-full bg-transparent border-none p-0 py-xs font-display-md text-display-md focus:ring-0 text-on-surface" placeholder="What needs to be done?" type="text" value="Pick up groceries after work"/>
+</div>
+<!-- Notes Section -->
+<div class="group border-b border-outline-variant focus-within:border-primary transition-colors">
+<label class="font-label-sm text-label-sm text-outline group-focus-within:text-primary">Notes from voice</label>
+<textarea class="w-full bg-transparent border-none p-0 py-xs font-body-md text-body-md focus:ring-0 text-on-surface-variant resize-none" placeholder="Add extra details..." rows="2">Need to get milk, eggs, and that specific artisan bread for the weekend dinner. AI noted 'after work' which implies late afternoon.</textarea>
+</div>
+<!-- Date & Time + Category Row -->
+<div class="flex flex-wrap gap-md">
+<div class="flex-1 group border-b border-outline-variant focus-within:border-primary transition-colors">
+<label class="font-label-sm text-label-sm text-outline group-focus-within:text-primary">Date &amp; Time</label>
+<div class="flex items-center gap-xs py-xs">
+<span class="material-symbols-outlined text-outline text-[18px]">calendar_month</span>
+<input class="w-full bg-transparent border-none p-0 font-body-md text-body-md focus:ring-0 text-on-surface" type="text" value="Today, 5:30 PM"/>
+</div>
+</div>
+<div class="flex-shrink-0 group">
+<label class="font-label-sm text-label-sm text-outline">Category</label>
+<div class="mt-xs">
+<div class="inline-flex items-center gap-sm px-md py-sm bg-primary text-on-primary rounded-lg font-label-md cursor-pointer transition-all active:scale-95">
+<span class="material-symbols-outlined text-[16px]">shopping_cart</span>
+                                Shopping
+                            </div>
+</div>
+</div>
+</div>
+<!-- Atmospheric Waveform Interaction -->
+<div class="h-1 bg-surface-variant rounded-full overflow-hidden relative mt-sm">
+<div class="absolute inset-0 bg-primary w-2/3 animate-pulse"></div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex gap-sm mt-xl">
+<button class="flex-1 py-md border border-outline-variant text-on-surface-variant font-label-md rounded-lg hover:bg-surface-variant transition-colors flex justify-center items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+                    Discard
+                </button>
+<button class="flex-1 py-md bg-inverse-surface text-inverse-on-surface font-label-md rounded-lg hover:opacity-90 transition-all flex justify-center items-center gap-sm shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[20px]">check</span>
+                    Confirm Task
+                </button>
+</div>
+</div>
+</div>
+<script>
+        // Simple micro-interaction for the bottom sheet enter animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const sheet = document.getElementById('bottomSheet');
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                sheet.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Handle touch drag to dismiss (simplified)
+            let startY = 0;
+            sheet.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            });
+
+            sheet.addEventListener('touchmove', (e) => {
+                let deltaY = e.touches[0].clientY - startY;
+                if (deltaY > 0) {
+                    sheet.style.transform = `translateY(${deltaY}px)`;
+                }
+            });
+
+            sheet.addEventListener('touchend', (e) => {
+                let deltaY = e.changedTouches[0].clientY - startY;
+                if (deltaY > 150) {
+                    sheet.style.transform = 'translateY(100%)';
+                } else {
+                    sheet.style.transform = 'translateY(0)';
+                }
+            });
+
+            // Voice badge pulse simulation
+            const badge = document.querySelector('.bg-primary-fixed');
+            if (badge) {
+                let active = true;
+                setInterval(() => {
+                    badge.style.opacity = active ? '0.8' : '1';
+                    active = !active;
+                }, 800);
+            }
+        });
+    </script>
+</body></html>
