@@ -51,10 +51,30 @@ function parseJsonOrNull(bruto: string): unknown {
 }
 
 let temporizador: ReturnType<typeof setTimeout> | null = null;
+let estadoPendente: EstadoPersistido | null = null;
+
+function persistirPendente(): void {
+  if (temporizador) {
+    clearTimeout(temporizador);
+    temporizador = null;
+  }
+  if (estadoPendente === null) return;
+  localStorage.setItem(CHAVE, JSON.stringify(estadoPendente));
+  estadoPendente = null;
+}
+
+// Sem isso, uma tarefa criada e seguida de reload/fechamento rápido da aba
+// (antes dos 300ms do debounce) se perderia: o timer nunca chega a disparar.
+// visibilitychange cobre tanto trocar de aba quanto fechar/recarregar.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') persistirPendente();
+  });
+  window.addEventListener('pagehide', persistirPendente);
+}
 
 export function salvarEstado(estado: EstadoPersistido): void {
+  estadoPendente = estado;
   if (temporizador) clearTimeout(temporizador);
-  temporizador = setTimeout(() => {
-    localStorage.setItem(CHAVE, JSON.stringify(estado));
-  }, DEBOUNCE_MS);
+  temporizador = setTimeout(persistirPendente, DEBOUNCE_MS);
 }
