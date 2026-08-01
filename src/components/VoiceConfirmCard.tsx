@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, Mic, Trash2 } from 'lucide-react';
 import { textos } from '../lib/textos';
-import { CATEGORIAS } from '../lib/categorias';
 import type { Categoria } from '../types/tarefa';
+import type { CategoriaDef } from '../types/categoria';
 import { CategoryChip } from './CategoryChip';
 import { valorDatetimeLocalParaIso, valorMinimoDatetimeLocal } from '../lib/datas';
 
@@ -17,6 +17,7 @@ export type SugestaoTarefa = {
 
 type VoiceConfirmCardProps = {
   sugestao: SugestaoTarefa;
+  categorias: CategoriaDef[];
   onConfirmar: (titulo: string, categoria: Categoria | null, lembreteEm: string | null, nota: string | null) => void;
   onDescartar: () => void;
 };
@@ -26,7 +27,7 @@ function paraValorDatetimeLocal(iso: string | null): string {
   return iso.slice(0, 16);
 }
 
-export function VoiceConfirmCard({ sugestao, onConfirmar, onDescartar }: VoiceConfirmCardProps) {
+export function VoiceConfirmCard({ sugestao, categorias, onConfirmar, onDescartar }: VoiceConfirmCardProps) {
   const [titulo, setTitulo] = useState(sugestao.titulo);
   const [nota, setNota] = useState(sugestao.nota ?? '');
   const [categoria, setCategoria] = useState<Categoria | null>(sugestao.categoria);
@@ -91,12 +92,12 @@ export function VoiceConfirmCard({ sugestao, onConfirmar, onDescartar }: VoiceCo
           <div>
             <span className="text-label-sm text-on-surface-variant">{textos.rotuloCategoriaCard}</span>
             <div className="no-scrollbar mt-xs flex gap-sm overflow-x-auto">
-              {CATEGORIAS.map((opcao) => (
+              {categorias.map((opcao) => (
                 <CategoryChip
-                  key={opcao}
+                  key={opcao.id}
                   categoria={opcao}
-                  ativo={categoria === opcao}
-                  onClick={() => setCategoria((atual) => (atual === opcao ? null : opcao))}
+                  ativo={categoria === opcao.id}
+                  onClick={() => setCategoria((atual) => (atual === opcao.id ? null : opcao.id))}
                 />
               ))}
             </div>

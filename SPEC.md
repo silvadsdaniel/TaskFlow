@@ -126,6 +126,8 @@ Frase: "{TRANSCRICAO}"
 - Deixar a chamada de IA isolada em `src/lib/ia.ts`, atrás de uma função única `interpretarTarefa(texto: string)`. Isso permite trocar a chamada direta por um proxy no futuro alterando um arquivo só.
 - Incluir comentário no topo desse arquivo registrando que a chamada direta do navegador expõe a chave e é aceitável apenas em ambiente local.
 
+**Pendência aberta:** o deploy em `.github/workflows/deploy-pages.yml` publica o build em GitHub Pages, que é público. Se `VITE_AI_API_KEY` for configurada como secret desse workflow, a chave vaza no bundle de produção para qualquer visitante — o comentário acima ("aceitável apenas em ambiente local") deixa de valer nesse cenário. Antes de configurar essa secret no repositório, decidir entre: (a) não fazer deploy do recurso de voz/IA em produção, ou (b) introduzir um proxy mínimo (ex.: Cloudflare Worker gratuito) na frente da Groq — o que exige aprovação explícita por sair da stack "sem backend" fixada acima. Não implementado nesta rodada; decisão do responsável pelo produto.
+
 ## Acessibilidade
 - Toda a aplicação navegável por teclado.
 - `Enter` no campo de entrada cria a tarefa. `Escape` fecha painéis e cancela gravação.
@@ -158,6 +160,62 @@ Pronto quando: o mês renderiza os indicadores corretos e clicar num dia abre su
 ### Fase 6 — Refino
 Tema escuro, microinterações, toast de desfazer, estados vazios, responsividade em 390px, PWA instalável.
 Pronto quando: nenhum erro de console, layout íntegro em 390px e app instalável.
+
+### Fase 7 — Exportar e importar dados
+
+Motivação: os dados vivem só no `localStorage` de um navegador. Trocar de dispositivo, limpar dados do site ou reinstalar o navegador apaga tudo sem aviso — hoje não há como o usuário tirar uma cópia de segurança. Esta fase resolve isso sem sair do modelo "sem backend": o próprio usuário é responsável por guardar o arquivo onde quiser (Drive, e-mail, pendrive).
+
+Formato do arquivo exportado (`taskflow-backup-AAAA-MM-DD.json`):
+```typescript
+type BackupExportado = {
+  versao: 1;
+  exportadoEm: string; // ISO 8601 com offset
+  tarefas: Tarefa[];
+  categorias: CategoriaDef[];
+};
+```
+- Exportar: gera o JSON acima (todas as tarefas e categorias atuais) e dispara o download pelo navegador. Sem envio a servidor nenhum.
+- Importar: usuário seleciona um arquivo `.json`. Validar com zod reaproveitando os schemas de `storage.ts` e `categoriasStorage.ts`. Arquivo inválido ou corrompido exibe mensagem de erro específica, sem travar a tela.
+- Importar **substitui** integralmente tarefas e categorias atuais — não faz merge por id. Antes de aplicar, mostrar contagem do que será importado ("X tarefas e Y categorias") e exigir confirmação explícita num passo próprio da UI (nunca `confirm()` nativo), avisando que a ação não pode ser desfeita.
+- Mesclar dados de dois arquivos fica fora de escopo desta fase.
+- Acessar pelo mesmo cabeçalho do tema (ícone dedicado), abrindo um painel modal com as duas ações.
+Pronto quando: exportar gera um arquivo que, importado de volta (no mesmo navegador ou em outro), reproduz exatamente as mesmas tarefas e categorias.
+
+### Fase 8 — Busca e tags múltiplas
+Campo de busca por texto (título e nota, case-insensitive, sem acento-sensibilidade) visível nas visões Hoje/Semana/Concluídas. Tarefa passa a aceitar múltiplas tags (categoria continua existindo como campo único "principal" para os pontos do calendário; tags são adicionais, filtráveis do mesmo jeito que categoria hoje). Exige nova versão do estado persistido (`versao: 2`) com migração automática de tarefas antigas (`tags: []`).
+Pronto quando: buscar por um trecho do título encontra a tarefa em qualquer visão, e filtrar por tag combina com o filtro de categoria existente.
+
+### Fase 9 — Tarefas recorrentes
+Campo opcional de recorrência no formulário de tarefa, com dois grupos de opção: cadência fixa (diária, semanal, mensal) ou dias específicos da semana (seletor de múltipla escolha Dom–Sáb, ex: "toda segunda, quarta e sexta"). Ao concluir uma tarefa recorrente, gerar automaticamente a próxima ocorrência com o lembrete deslocado (para dias da semana: o próximo dia marcado a partir de amanhã), preservando título/nota/categoria/tags. Formato persistido:
+```typescript
+type Recorrencia =
+  | { tipo: 'diaria' | 'semanal' | 'mensal' }
+  | { tipo: 'diasDaSemana'; dias: number[] }; // 0 = domingo … 6 = sábado, ao menos um dia
+```
+Exige migração do estado persistido: a versão anterior gravava `recorrencia` como string solta (`'diaria' | 'semanal' | 'mensal' | null`); a leitura migra automaticamente para `{ tipo: valor } | null`.
+Pronto quando: concluir uma tarefa diária cria a ocorrência do dia seguinte automaticamente; concluir uma tarefa com dias específicos cria a ocorrência no próximo dia marcado; excluir uma ocorrência não afeta as futuras.
+
+Cálculo de datas: toda a aritmética de "próxima ocorrência" usa os campos de data/hora já convertidos para o fuso fixo America/Sao_Paulo (mesma técnica de deslocamento fixo usada em `limitesDoDiaAtual`), nunca os getters locais do `Date` do navegador — evita depender do fuso configurado no sistema operacional de quem roda o app.
+
+### Fase 12 — Editar tarefa e subtarefa existentes
+Hoje só é possível criar, concluir e excluir — não editar depois de criada. Adiciona:
+- Um modal de edição (acionado por um botão de editar no card da tarefa) reaproveitando os mesmos campos do formulário de criação: título, nota, categoria, tags, lembrete, recorrência, prioridade.
+- Edição do texto de um item de checklist já criado, inline na própria lista de subtarefas (sem abrir modal).
+Editar não gera uma nova tarefa nem mexe em `criadaEm`/`concluidaEm`/`notificada`.
+Pronto quando: abrir uma tarefa existente, mudar qualquer campo e salvar reflete a mudança sem perder o restante dos dados da tarefa; editar o texto de uma subtarefa não desmarca seu estado de concluída.
+
+## Auditoria de fuso horário (fuso fixo America/Sao_Paulo)
+Revisão pontual pedida para confirmar que todo cálculo de data segue o fuso fixo -03:00, sem depender do relógio/fuso do sistema operacional:
+- `limitesDoDiaAtual`, `limitesDosProximosDias` e o novo cálculo de próxima ocorrência (Fase 9) já fazem a aritmética inteira em UTC com o offset fixo somado/subtraído manualmente — corretos independentemente do fuso do SO.
+- `valorDatetimeLocalParaIso`, `valorMinimoDatetimeLocal`, `diaEmIso09h` e toda a grade do calendário (`CalendarGrid`/`lib/calendario.ts`) dependem do valor devolvido pelo `<input type="datetime-local">` e dos getters locais do `Date` do navegador — isso é uma limitação de plataforma (o input HTML nativo não tem como ser "fixado" em outro fuso sem substituí-lo por um seletor 100% customizado) e só produz o resultado correto se o sistema operacional de quem usa o app estiver configurado para America/Sao_Paulo. Documentado desde a Fase 1; não corrigido nesta rodada — corrigir de verdade exigiria trocar o input nativo por um seletor de data/hora próprio, o que é uma mudança de escopo maior e não foi pedido.
+
+### Fase 10 — Subtarefas (checklist)
+Lista de itens simples (texto + concluído) dentro de uma tarefa, sem hierarquia adicional. Progresso exibido como "2/5" no card da tarefa. Exige migração do estado persistido (`subtarefas: []`).
+Pronto quando: criar, concluir e reordenar itens de checklist dentro de uma tarefa funciona e persiste.
+
+### Fase 11 — Prioridade
+Campo opcional de prioridade (normal | importante) por tarefa, afetando ordenação (importante primeiro dentro de cada grupo já definido em "Ordenação") e um indicador visual discreto no card. Exige migração do estado persistido (`prioridade: 'normal'` como padrão).
+Pronto quando: uma tarefa importante aparece antes das normais dentro do mesmo grupo de ordenação, em todas as visões.
 
 ## Critérios de aceite finais
 1. Criar tarefa com lembrete e receber a notificação no horário, com a aba aberta.

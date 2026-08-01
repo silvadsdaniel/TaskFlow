@@ -7,6 +7,7 @@ import { useAgendadorLembretes } from './hooks/useAgendadorLembretes';
 import { useCapturaVoz, type EstadoCapturaVoz } from './hooks/useCapturaVoz';
 import { useTema } from './hooks/useTema';
 import { useDesfazer } from './hooks/useDesfazer';
+import { useCategorias } from './hooks/useCategorias';
 import { TaskForm } from './components/TaskForm';
 import { TaskList } from './components/TaskList';
 import { FilterBar } from './components/FilterBar';
@@ -21,9 +22,16 @@ import { CalendarGrid } from './components/CalendarGrid';
 import { DayDetailPanel } from './components/DayDetailPanel';
 import { ThemeToggle } from './components/ThemeToggle';
 import { UndoToast } from './components/UndoToast';
+import { CategoryManager } from './components/CategoryManager';
+import { BackupPanel } from './components/BackupPanel';
+import { BackupButton } from './components/BackupButton';
+import { SearchInput } from './components/SearchInput';
+import { TaskEditModal } from './components/TaskEditModal';
 import { textos } from './lib/textos';
-import { agruparHoje, agruparSemana } from './lib/visoes';
+import { exportarBackup } from './lib/backup';
+import { agruparHoje, agruparSemana, ordenarConcluidas } from './lib/visoes';
 import { diaEmIso09h } from './lib/datas';
+import { tarefaCorrespondeABusca } from './lib/busca';
 import { tarefasComLembreteNoDia } from './lib/calendario';
 import { capitalizarPrimeiraLetra } from './lib/formatacao';
 import {
@@ -33,11 +41,16 @@ import {
   solicitarPermissao,
   suportado,
 } from './lib/notificacoes';
-import type { Categoria } from './types/tarefa';
+import type { Categoria, Prioridade, Recorrencia, Tarefa } from './types/tarefa';
+import type { CategoriaDef } from './types/categoria';
+import type { Dispatch } from 'react';
+import type { AcaoTarefas } from './lib/tarefasReducer';
 
 export default function App() {
   const { tarefas, dispatch, corrompido } = useTarefas();
-  const { categoriasSelecionadas, alternarCategoria, limparFiltros } = useFiltros();
+  const { categoriasSelecionadas, tagsSelecionadas, alternarCategoria, alternarTag, limparFiltros } =
+    useFiltros();
+  const [busca, setBusca] = useState('');
   const { lembretesPerdidos, tarefaDestacada, limparLembretesPerdidos } = useAgendadorLembretes(
     tarefas,
     dispatch,
@@ -48,22 +61,37 @@ export default function App() {
   const [explicarNotificacoesAberto, setExplicarNotificacoesAberto] = useState(false);
   const [mesVisualizado, setMesVisualizado] = useState(() => new Date());
   const [diaSelecionado, setDiaSelecionado] = useState<Date | null>(null);
+  const [gerenciarCategoriasAberto, setGerenciarCategoriasAberto] = useState(false);
+  const [backupAberto, setBackupAberto] = useState(false);
+  const [tarefaEditando, setTarefaEditando] = useState<Tarefa | null>(null);
+  const {
+    categorias,
+    criar: criarCategoria,
+    editar: editarCategoria,
+    substituir: substituirCategorias,
+  } = useCategorias();
   const {
     estado: estadoVoz,
     iniciar: iniciarVoz,
     parar: pararVoz,
     cancelar: cancelarVoz,
     resetar: resetarVoz,
-  } = useCapturaVoz();
+  } = useCapturaVoz(categorias);
   const { tema, alternarTema } = useTema();
   const { idPendente, tipoPendente, agendar: agendarDesfazer, desfazer } = useDesfazer(dispatch);
 
-  const filtroAtivo = categoriasSelecionadas.length > 0;
+  const filtroAtivo = categoriasSelecionadas.length > 0 || tagsSelecionadas.length > 0;
+  const buscaAtiva = busca.trim() !== '';
   const tarefasFiltradas = tarefas.filter(
     (tarefa) =>
       tarefa.id !== idPendente &&
-      (!filtroAtivo ||
-        (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria))),
+      (categoriasSelecionadas.length === 0 ||
+        (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria))) &&
+      (tagsSelecionadas.length === 0 || tarefa.tags.some((tag) => tagsSelecionadas.includes(tag))) &&
+      tarefaCorrespondeABusca(tarefa, busca),
+  );
+  const tagsDisponiveis = Array.from(new Set(tarefas.flatMap((tarefa) => tarefa.tags))).sort((a, b) =>
+    a.localeCompare(b, 'pt-BR'),
   );
   const possuiLembretesPendentes = tarefas.some(
     (tarefa) => !tarefa.concluida && tarefa.lembreteEm !== null,
@@ -76,8 +104,25 @@ export default function App() {
     }
   }
 
-  function handleAdicionar(titulo: string, categoria: Categoria | null, lembreteEm: string | null) {
-    dispatch({ tipo: 'adicionar', titulo, categoria, lembreteEm, nota: null, origem: 'texto' });
+  function handleAdicionar(
+    titulo: string,
+    categoria: Categoria | null,
+    lembreteEm: string | null,
+    tags: string[],
+    recorrencia: Recorrencia | null,
+    prioridade: Prioridade,
+  ) {
+    dispatch({
+      tipo: 'adicionar',
+      titulo,
+      categoria,
+      lembreteEm,
+      nota: null,
+      origem: 'texto',
+      tags,
+      recorrencia,
+      prioridade,
+    });
     setAnuncio('Tarefa criada');
     avaliarPermissaoAoCriarLembrete(lembreteEm);
   }
@@ -102,9 +147,30 @@ export default function App() {
     avaliarPermissaoAoCriarLembrete(lembreteEm);
   }
 
+  function handleSalvarEdicao(
+    id: string,
+    titulo: string,
+    nota: string | null,
+    categoria: Categoria | null,
+    tags: string[],
+    lembreteEm: string | null,
+    recorrencia: Recorrencia | null,
+    prioridade: Prioridade,
+  ) {
+    dispatch({ tipo: 'editar', id, titulo, nota, categoria, tags, lembreteEm, recorrencia, prioridade });
+    setAnuncio(textos.tarefaEditada);
+    avaliarPermissaoAoCriarLembrete(lembreteEm);
+    setTarefaEditando(null);
+  }
+
   const fasesComPainelAberto: EstadoCapturaVoz['fase'][] = ['capturando', 'processando', 'erro', 'confirmando'];
   const painelVozAberto = fasesComPainelAberto.includes(estadoVoz.fase);
-  const algumPainelAberto = painelVozAberto || diaSelecionado !== null;
+  const algumPainelAberto =
+    painelVozAberto ||
+    diaSelecionado !== null ||
+    gerenciarCategoriasAberto ||
+    backupAberto ||
+    tarefaEditando !== null;
 
   useEffect(() => {
     if (!algumPainelAberto) return;
@@ -112,11 +178,14 @@ export default function App() {
     function aoPressionarTecla(evento: KeyboardEvent) {
       if (evento.key !== 'Escape') return;
       if (painelVozAberto) cancelarVoz();
+      else if (gerenciarCategoriasAberto) setGerenciarCategoriasAberto(false);
+      else if (backupAberto) setBackupAberto(false);
+      else if (tarefaEditando !== null) setTarefaEditando(null);
       else setDiaSelecionado(null);
     }
     document.addEventListener('keydown', aoPressionarTecla);
     return () => document.removeEventListener('keydown', aoPressionarTecla);
-  }, [algumPainelAberto, painelVozAberto, cancelarVoz]);
+  }, [algumPainelAberto, painelVozAberto, gerenciarCategoriasAberto, backupAberto, tarefaEditando, cancelarVoz]);
 
   async function handlePermitirNotificacoes() {
     const resultado = await solicitarPermissao();
@@ -134,6 +203,18 @@ export default function App() {
     setAnuncio(textos.tarefaExcluida);
   }
 
+  function handleExportarBackup() {
+    exportarBackup(tarefas, categorias);
+    setAnuncio(textos.dadosExportados);
+  }
+
+  function handleImportarBackup(tarefasImportadas: Tarefa[], categoriasImportadas: CategoriaDef[]) {
+    dispatch({ tipo: 'substituirTudo', tarefas: tarefasImportadas });
+    substituirCategorias(categoriasImportadas);
+    setAnuncio(textos.dadosImportados);
+    setBackupAberto(false);
+  }
+
   return (
     <div className="min-h-screen bg-background text-on-surface">
       <main className="mx-auto w-full max-w-[640px] px-margin-mobile pb-32 pt-lg">
@@ -142,7 +223,10 @@ export default function App() {
             <h1 className="text-display-md-mobile text-on-surface">{textos.tituloApp}</h1>
             <p className="text-body-md text-on-surface-variant">{textos.subtituloApp}</p>
           </div>
-          <ThemeToggle tema={tema} onAlternar={alternarTema} />
+          <div className="flex items-center gap-xs">
+            <BackupButton onAbrir={() => setBackupAberto(true)} />
+            <ThemeToggle tema={tema} onAlternar={alternarTema} />
+          </div>
         </header>
 
         {corrompido && (
@@ -162,53 +246,108 @@ export default function App() {
         )}
 
         <ViewTabs visao={visao} onMudar={setVisao} />
+        <div className="mb-sm">
+          <SearchInput valor={busca} onMudar={setBusca} />
+        </div>
         <div className="mb-md">
           <FilterBar
+            categorias={categorias}
             categoriasSelecionadas={categoriasSelecionadas}
+            tagsDisponiveis={tagsDisponiveis}
+            tagsSelecionadas={tagsSelecionadas}
             onAlternar={alternarCategoria}
+            onAlternarTag={alternarTag}
             onLimpar={limparFiltros}
+            onGerenciarCategorias={() => setGerenciarCategoriasAberto(true)}
           />
         </div>
 
         {visao === 'hoje' && (
           <VisaoHoje
             tarefas={tarefasFiltradas}
+            categorias={categorias}
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
-            mensagemVazia={filtroAtivo ? textos.listaVaziaFiltro : textos.listaVazia}
+            onEditar={setTarefaEditando}
+            dispatch={dispatch}
+            mensagemVazia={buscaAtiva ? textos.buscaSemResultado : filtroAtivo ? textos.listaVaziaFiltro : textos.listaVazia}
           />
         )}
         {visao === 'semana' && (
           <VisaoSemana
             tarefas={tarefasFiltradas}
+            categorias={categorias}
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
+            onEditar={setTarefaEditando}
+            dispatch={dispatch}
           />
         )}
         {visao === 'calendario' && (
           <CalendarGrid
             mesVisualizado={mesVisualizado}
             tarefas={tarefasFiltradas}
+            categorias={categorias}
             diaSelecionado={diaSelecionado}
             onMudarMes={setMesVisualizado}
             onSelecionarDia={setDiaSelecionado}
           />
         )}
+        {visao === 'concluidas' && (
+          <VisaoConcluidas
+            tarefas={tarefasFiltradas}
+            categorias={categorias}
+            tarefaDestacada={tarefaDestacada}
+            onConcluir={handleConcluir}
+            onExcluir={handleExcluir}
+            onEditar={setTarefaEditando}
+            dispatch={dispatch}
+          />
+        )}
       </main>
 
-      <TaskForm onAdicionar={handleAdicionar} onIniciarVoz={iniciarVoz} />
+      <TaskForm categorias={categorias} onAdicionar={handleAdicionar} onIniciarVoz={iniciarVoz} />
 
       {diaSelecionado && (
         <DayDetailPanel
           dia={diaSelecionado}
           tarefas={tarefasComLembreteNoDia(tarefasFiltradas, diaSelecionado)}
+          categorias={categorias}
           tarefaDestacada={tarefaDestacada}
           onFechar={() => setDiaSelecionado(null)}
           onConcluir={handleConcluir}
           onExcluir={handleExcluir}
+          onEditar={setTarefaEditando}
           onAdicionarNoDia={handleAdicionarNoDia}
+          dispatch={dispatch}
+        />
+      )}
+
+      {tarefaEditando && (
+        <TaskEditModal
+          tarefa={tarefaEditando}
+          categorias={categorias}
+          onFechar={() => setTarefaEditando(null)}
+          onSalvar={handleSalvarEdicao}
+        />
+      )}
+
+      {gerenciarCategoriasAberto && (
+        <CategoryManager
+          categorias={categorias}
+          onFechar={() => setGerenciarCategoriasAberto(false)}
+          onCriar={criarCategoria}
+          onEditar={editarCategoria}
+        />
+      )}
+
+      {backupAberto && (
+        <BackupPanel
+          onFechar={() => setBackupAberto(false)}
+          onExportar={handleExportarBackup}
+          onImportar={handleImportarBackup}
         />
       )}
 
@@ -227,6 +366,7 @@ export default function App() {
       {estadoVoz.fase === 'confirmando' && (
         <VoiceConfirmCard
           sugestao={estadoVoz.sugestao}
+          categorias={categorias}
           onConfirmar={handleConfirmarVoz}
           onDescartar={resetarVoz}
         />
@@ -251,16 +391,22 @@ export default function App() {
 
 type VisaoProps = {
   tarefas: ReturnType<typeof useTarefas>['tarefas'];
+  categorias: CategoriaDef[];
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  onEditar: (tarefa: Tarefa) => void;
+  dispatch: Dispatch<AcaoTarefas>;
 };
 
 function VisaoHoje({
   tarefas,
+  categorias,
   tarefaDestacada,
   onConcluir,
   onExcluir,
+  onEditar,
+  dispatch,
   mensagemVazia,
 }: VisaoProps & { mensagemVazia: string }) {
   const { comData, semData } = agruparHoje(tarefas);
@@ -274,9 +420,12 @@ function VisaoHoje({
       {comData.length > 0 && (
         <TaskList
           tarefas={comData}
+          categorias={categorias}
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          onEditar={onEditar}
+          dispatch={dispatch}
         />
       )}
       {semData.length > 0 && (
@@ -284,9 +433,12 @@ function VisaoHoje({
           <h2 className="mb-sm text-label-md text-on-surface-variant">{textos.secaoSemData}</h2>
           <TaskList
             tarefas={semData}
+            categorias={categorias}
             tarefaDestacada={tarefaDestacada}
             onConcluir={onConcluir}
             onExcluir={onExcluir}
+            onEditar={onEditar}
+            dispatch={dispatch}
           />
         </div>
       )}
@@ -294,7 +446,7 @@ function VisaoHoje({
   );
 }
 
-function VisaoSemana({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
+function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, onEditar, dispatch }: VisaoProps) {
   const dias = agruparSemana(tarefas);
 
   return (
@@ -311,13 +463,34 @@ function VisaoSemana({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoP
           ) : (
             <TaskList
               tarefas={dia.tarefas}
+              categorias={categorias}
               tarefaDestacada={tarefaDestacada}
               onConcluir={onConcluir}
               onExcluir={onExcluir}
+              onEditar={onEditar}
+              dispatch={dispatch}
             />
           )}
         </div>
       ))}
     </div>
+  );
+}
+
+function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, onEditar, dispatch }: VisaoProps) {
+  const concluidas = ordenarConcluidas(tarefas);
+
+  return (
+    <TaskList
+      tarefas={concluidas}
+      categorias={categorias}
+      tarefaDestacada={tarefaDestacada}
+      onConcluir={onConcluir}
+      onExcluir={onExcluir}
+      onEditar={onEditar}
+      dispatch={dispatch}
+      mensagemVazia={textos.concluidasListaVazia}
+      somenteExibirConclusao
+    />
   );
 }

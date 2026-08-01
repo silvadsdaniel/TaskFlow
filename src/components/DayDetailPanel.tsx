@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import type { Dispatch } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Plus, X } from 'lucide-react';
 import type { Tarefa } from '../types/tarefa';
+import type { CategoriaDef } from '../types/categoria';
+import type { AcaoTarefas } from '../lib/tarefasReducer';
 import { textos } from '../lib/textos';
 import { capitalizarPrimeiraLetra } from '../lib/formatacao';
 import { TaskList } from './TaskList';
@@ -10,21 +13,27 @@ import { TaskList } from './TaskList';
 type DayDetailPanelProps = {
   dia: Date;
   tarefas: Tarefa[];
+  categorias: CategoriaDef[];
   tarefaDestacada: string | null;
   onFechar: () => void;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  onEditar: (tarefa: Tarefa) => void;
   onAdicionarNoDia: (titulo: string) => void;
+  dispatch: Dispatch<AcaoTarefas>;
 };
 
 export function DayDetailPanel({
   dia,
   tarefas,
+  categorias,
   tarefaDestacada,
   onFechar,
   onConcluir,
   onExcluir,
+  onEditar,
   onAdicionarNoDia,
+  dispatch,
 }: DayDetailPanelProps) {
   const [novoTitulo, setNovoTitulo] = useState('');
 
@@ -58,9 +67,12 @@ export function DayDetailPanel({
 
         <TaskList
           tarefas={tarefas}
+          categorias={categorias}
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          onEditar={onEditar}
+          dispatch={dispatch}
           mensagemVazia={textos.diaSemTarefas}
         />
 

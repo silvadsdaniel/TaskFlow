@@ -1,30 +1,72 @@
 import { useState } from 'react';
-import { Bell, Plus, X } from 'lucide-react';
+import { Bell, Plus, Star, Tag, X } from 'lucide-react';
 import { textos } from '../lib/textos';
-import { CATEGORIAS } from '../lib/categorias';
-import type { Categoria } from '../types/tarefa';
+import type { Categoria, Prioridade, Recorrencia } from '../types/tarefa';
+import type { CategoriaDef } from '../types/categoria';
 import { CategoryChip } from './CategoryChip';
+import { RecurrenceField } from './RecurrenceField';
 import { valorDatetimeLocalParaIso, valorMinimoDatetimeLocal } from '../lib/datas';
+import { recorrenciaValida } from '../lib/recorrencia';
 import { VoiceButton } from './VoiceButton';
 import { suportadoReconhecimentoVoz } from '../lib/voz';
 
 type TaskFormProps = {
-  onAdicionar: (titulo: string, categoria: Categoria | null, lembreteEm: string | null) => void;
+  categorias: CategoriaDef[];
+  onAdicionar: (
+    titulo: string,
+    categoria: Categoria | null,
+    lembreteEm: string | null,
+    tags: string[],
+    recorrencia: Recorrencia | null,
+    prioridade: Prioridade,
+  ) => void;
   onIniciarVoz: () => void;
 };
 
-export function TaskForm({ onAdicionar, onIniciarVoz }: TaskFormProps) {
+export function TaskForm({ categorias, onAdicionar, onIniciarVoz }: TaskFormProps) {
   const [titulo, setTitulo] = useState('');
   const [categoria, setCategoria] = useState<Categoria | null>(null);
   const [valorLembrete, setValorLembrete] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [novaTag, setNovaTag] = useState('');
+  const [recorrencia, setRecorrencia] = useState<Recorrencia | null>(null);
+  const [prioridade, setPrioridade] = useState<Prioridade>('normal');
 
   function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
     const lembreteEm = valorLembrete === '' ? null : valorDatetimeLocalParaIso(valorLembrete);
-    onAdicionar(titulo, categoria, lembreteEm);
+    onAdicionar(
+      titulo,
+      categoria,
+      lembreteEm,
+      tags,
+      lembreteEm === null ? null : recorrenciaValida(recorrencia),
+      prioridade,
+    );
     setTitulo('');
     setCategoria(null);
     setValorLembrete('');
+    setTags([]);
+    setNovaTag('');
+    setRecorrencia(null);
+    setPrioridade('normal');
+  }
+
+  function adicionarTag() {
+    const tag = novaTag.trim();
+    if (tag === '' || tags.includes(tag)) {
+      setNovaTag('');
+      return;
+    }
+    setTags((atuais) => [...atuais, tag]);
+    setNovaTag('');
+  }
+
+  function handleTeclaTag(evento: React.KeyboardEvent<HTMLInputElement>) {
+    if (evento.key === 'Enter' || evento.key === ',') {
+      evento.preventDefault();
+      adicionarTag();
+    }
   }
 
   return (
@@ -33,18 +75,19 @@ export function TaskForm({ onAdicionar, onIniciarVoz }: TaskFormProps) {
       className="fixed bottom-0 left-0 flex w-full flex-col items-center gap-sm p-md"
     >
       {titulo.length > 0 && (
-        <div className="flex w-full max-w-[640px] flex-col gap-sm">
+        <div className="flex w-full max-w-[640px] flex-col gap-sm rounded-lg border border-outline-variant bg-surface p-sm">
           <div className="no-scrollbar flex gap-sm overflow-x-auto">
-            {CATEGORIAS.map((opcao) => (
+            {categorias.map((opcao) => (
               <CategoryChip
-                key={opcao}
+                key={opcao.id}
                 categoria={opcao}
-                ativo={categoria === opcao}
-                onClick={() => setCategoria((atual) => (atual === opcao ? null : opcao))}
+                ativo={categoria === opcao.id}
+                onClick={() => setCategoria((atual) => (atual === opcao.id ? null : opcao.id))}
               />
             ))}
           </div>
-          <div className="flex items-center gap-sm rounded-lg border border-outline-variant bg-surface px-md py-sm">
+
+          <div className="flex items-center gap-sm rounded-lg border border-outline-variant px-md py-sm">
             <Bell size={16} className="shrink-0 text-on-surface-variant" />
             <input
               type="datetime-local"
@@ -65,6 +108,53 @@ export function TaskForm({ onAdicionar, onIniciarVoz }: TaskFormProps) {
               </button>
             )}
           </div>
+
+          {valorLembrete !== '' && <RecurrenceField recorrencia={recorrencia} onMudar={setRecorrencia} />}
+
+          <div className="flex items-center gap-sm rounded-lg border border-outline-variant px-md py-sm">
+            <Tag size={16} className="shrink-0 text-on-surface-variant" />
+            <input
+              value={novaTag}
+              onChange={(evento) => setNovaTag(evento.target.value)}
+              onKeyDown={handleTeclaTag}
+              onBlur={adicionarTag}
+              placeholder={textos.placeholderNovaTag}
+              maxLength={40}
+              aria-label={textos.rotuloTags}
+              className="flex-grow bg-transparent text-body-md text-on-surface placeholder:text-outline-variant focus:outline-none"
+            />
+          </div>
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-xs">
+              {tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setTags((atuais) => atuais.filter((t) => t !== tag))}
+                  aria-label={`${textos.botaoRemoverTag}: ${tag}`}
+                  className="flex items-center gap-xs rounded-full bg-surface-container-high px-sm py-1 text-label-sm text-on-surface-variant hover:text-error"
+                >
+                  #{tag}
+                  <X size={12} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setPrioridade((atual) => (atual === 'importante' ? 'normal' : 'importante'))}
+            aria-pressed={prioridade === 'importante'}
+            aria-label={textos.rotuloPrioridade}
+            className={`flex items-center justify-center gap-xs self-start rounded-full border px-md py-1.5 text-label-md transition-all ${
+              prioridade === 'importante'
+                ? 'border-transparent bg-tertiary text-on-tertiary'
+                : 'border-outline-variant text-on-surface-variant hover:bg-surface-container-high'
+            }`}
+          >
+            <Star size={14} fill={prioridade === 'importante' ? 'currentColor' : 'none'} />
+            {textos.rotuloPrioridade}
+          </button>
         </div>
       )}
       <div className="flex w-full max-w-[640px] items-center gap-xs rounded-full border border-outline-variant bg-surface p-xs shadow-xl">

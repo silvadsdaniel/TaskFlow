@@ -7,6 +7,10 @@ export function ordenarTarefas(tarefas: Tarefa[]): Tarefa[] {
     const grupoB = grupoDeOrdenacao(b);
     if (grupoA !== grupoB) return grupoA - grupoB;
 
+    const prioridadeA = pesoPrioridade(a);
+    const prioridadeB = pesoPrioridade(b);
+    if (prioridadeA !== prioridadeB) return prioridadeA - prioridadeB;
+
     if (grupoA === 0) {
       // Atrasadas: da mais antiga para a mais recente.
       return new Date(a.lembreteEm!).getTime() - new Date(b.lembreteEm!).getTime();
@@ -25,6 +29,10 @@ function grupoDeOrdenacao(tarefa: Tarefa): 0 | 1 | 2 {
   return estaAtrasada(tarefa.lembreteEm) ? 0 : 1;
 }
 
+function pesoPrioridade(tarefa: Tarefa): 0 | 1 {
+  return tarefa.prioridade === 'importante' ? 0 : 1;
+}
+
 export type VisaoHoje = {
   comData: Tarefa[];
   semData: Tarefa[];
@@ -40,6 +48,12 @@ export function agruparHoje(tarefas: Tarefa[]): VisaoHoje {
   const semData = pendentes.filter((tarefa) => tarefa.lembreteEm === null);
 
   return { comData: ordenarTarefas(comData), semData: ordenarTarefas(semData) };
+}
+
+export function ordenarConcluidas(tarefas: Tarefa[]): Tarefa[] {
+  return tarefas
+    .filter((tarefa) => tarefa.concluida && tarefa.concluidaEm !== null)
+    .sort((a, b) => new Date(b.concluidaEm!).getTime() - new Date(a.concluidaEm!).getTime());
 }
 
 export type DiaDaSemana = {
