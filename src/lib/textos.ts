@@ -59,4 +59,7 @@ export const textos = {
   tarefaExcluida: 'Tarefa excluída',
   listaVaziaFiltro: 'Nenhuma tarefa nessa categoria.',
   diaSemTarefas: 'Nenhuma tarefa neste dia.',
+  avisoNotificacoesNaoAtivadas:
+    'Você tem lembretes marcados, mas as notificações ainda não foram ativadas.',
+  botaoAtivarNotificacoes: 'Ativar notificações',
 } as const;

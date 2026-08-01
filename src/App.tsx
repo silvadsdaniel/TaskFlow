@@ -13,6 +13,7 @@ import { FilterBar } from './components/FilterBar';
 import { ViewTabs, type Visao } from './components/ViewTabs';
 import { NotificationExplainer } from './components/NotificationExplainer';
 import { PermissionDeniedNotice } from './components/PermissionDeniedNotice';
+import { NotificationEnableNotice } from './components/NotificationEnableNotice';
 import { MissedRemindersBanner } from './components/MissedRemindersBanner';
 import { VoiceCaptureOverlay } from './components/VoiceCaptureOverlay';
 import { VoiceConfirmCard } from './components/VoiceConfirmCard';
@@ -63,6 +64,9 @@ export default function App() {
       tarefa.id !== idPendente &&
       (!filtroAtivo ||
         (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria))),
+  );
+  const possuiLembretesPendentes = tarefas.some(
+    (tarefa) => !tarefa.concluida && tarefa.lembreteEm !== null,
   );
 
   function avaliarPermissaoAoCriarLembrete(lembreteEm: string | null) {
@@ -153,6 +157,9 @@ export default function App() {
 
         <MissedRemindersBanner tarefas={lembretesPerdidos} onFechar={limparLembretesPerdidos} />
         {permissao === 'denied' && <PermissionDeniedNotice />}
+        {permissao === 'default' && suportado() && possuiLembretesPendentes && (
+          <NotificationEnableNotice onAtivar={() => setExplicarNotificacoesAberto(true)} />
+        )}
 
         <ViewTabs visao={visao} onMudar={setVisao} />
         <div className="mb-md">
