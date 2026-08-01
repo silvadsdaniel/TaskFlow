@@ -7,6 +7,10 @@ export function ordenarTarefas(tarefas: Tarefa[]): Tarefa[] {
     const grupoB = grupoDeOrdenacao(b);
     if (grupoA !== grupoB) return grupoA - grupoB;
 
+    const prioridadeA = pesoPrioridade(a);
+    const prioridadeB = pesoPrioridade(b);
+    if (prioridadeA !== prioridadeB) return prioridadeA - prioridadeB;
+
     if (grupoA === 0) {
       // Atrasadas: da mais antiga para a mais recente.
       return new Date(a.lembreteEm!).getTime() - new Date(b.lembreteEm!).getTime();
@@ -23,6 +27,10 @@ export function ordenarTarefas(tarefas: Tarefa[]): Tarefa[] {
 function grupoDeOrdenacao(tarefa: Tarefa): 0 | 1 | 2 {
   if (tarefa.lembreteEm === null) return 2;
   return estaAtrasada(tarefa.lembreteEm) ? 0 : 1;
+}
+
+function pesoPrioridade(tarefa: Tarefa): 0 | 1 {
+  return tarefa.prioridade === 'importante' ? 0 : 1;
 }
 
 export type VisaoHoje = {

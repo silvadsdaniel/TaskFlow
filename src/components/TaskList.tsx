@@ -1,5 +1,7 @@
+import type { Dispatch } from 'react';
 import type { Tarefa } from '../types/tarefa';
 import type { CategoriaDef } from '../types/categoria';
+import type { AcaoTarefas } from '../lib/tarefasReducer';
 import { textos } from '../lib/textos';
 import { TaskItem } from './TaskItem';
 
@@ -9,6 +11,7 @@ type TaskListProps = {
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  dispatch: Dispatch<AcaoTarefas>;
   mensagemVazia?: string;
   somenteExibirConclusao?: boolean;
 };
@@ -19,6 +22,7 @@ export function TaskList({
   tarefaDestacada,
   onConcluir,
   onExcluir,
+  dispatch,
   mensagemVazia = textos.listaVazia,
   somenteExibirConclusao = false,
 }: TaskListProps) {
@@ -38,6 +42,7 @@ export function TaskList({
           destacada={tarefa.id === tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          dispatch={dispatch}
           somenteExibirConclusao={somenteExibirConclusao}
         />
       ))}

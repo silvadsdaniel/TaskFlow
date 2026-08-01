@@ -25,10 +25,12 @@ import { UndoToast } from './components/UndoToast';
 import { CategoryManager } from './components/CategoryManager';
 import { BackupPanel } from './components/BackupPanel';
 import { BackupButton } from './components/BackupButton';
+import { SearchInput } from './components/SearchInput';
 import { textos } from './lib/textos';
 import { exportarBackup } from './lib/backup';
 import { agruparHoje, agruparSemana, ordenarConcluidas } from './lib/visoes';
 import { diaEmIso09h } from './lib/datas';
+import { tarefaCorrespondeABusca } from './lib/busca';
 import { tarefasComLembreteNoDia } from './lib/calendario';
 import { capitalizarPrimeiraLetra } from './lib/formatacao';
 import {
@@ -38,12 +40,16 @@ import {
   solicitarPermissao,
   suportado,
 } from './lib/notificacoes';
-import type { Categoria, Tarefa } from './types/tarefa';
+import type { Categoria, Prioridade, Tarefa, TipoRecorrencia } from './types/tarefa';
 import type { CategoriaDef } from './types/categoria';
+import type { Dispatch } from 'react';
+import type { AcaoTarefas } from './lib/tarefasReducer';
 
 export default function App() {
   const { tarefas, dispatch, corrompido } = useTarefas();
-  const { categoriasSelecionadas, alternarCategoria, limparFiltros } = useFiltros();
+  const { categoriasSelecionadas, tagsSelecionadas, alternarCategoria, alternarTag, limparFiltros } =
+    useFiltros();
+  const [busca, setBusca] = useState('');
   const { lembretesPerdidos, tarefaDestacada, limparLembretesPerdidos } = useAgendadorLembretes(
     tarefas,
     dispatch,
@@ -72,12 +78,18 @@ export default function App() {
   const { tema, alternarTema } = useTema();
   const { idPendente, tipoPendente, agendar: agendarDesfazer, desfazer } = useDesfazer(dispatch);
 
-  const filtroAtivo = categoriasSelecionadas.length > 0;
+  const filtroAtivo = categoriasSelecionadas.length > 0 || tagsSelecionadas.length > 0;
+  const buscaAtiva = busca.trim() !== '';
   const tarefasFiltradas = tarefas.filter(
     (tarefa) =>
       tarefa.id !== idPendente &&
-      (!filtroAtivo ||
-        (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria))),
+      (categoriasSelecionadas.length === 0 ||
+        (tarefa.categoria !== null && categoriasSelecionadas.includes(tarefa.categoria))) &&
+      (tagsSelecionadas.length === 0 || tarefa.tags.some((tag) => tagsSelecionadas.includes(tag))) &&
+      tarefaCorrespondeABusca(tarefa, busca),
+  );
+  const tagsDisponiveis = Array.from(new Set(tarefas.flatMap((tarefa) => tarefa.tags))).sort((a, b) =>
+    a.localeCompare(b, 'pt-BR'),
   );
   const possuiLembretesPendentes = tarefas.some(
     (tarefa) => !tarefa.concluida && tarefa.lembreteEm !== null,
@@ -90,8 +102,25 @@ export default function App() {
     }
   }
 
-  function handleAdicionar(titulo: string, categoria: Categoria | null, lembreteEm: string | null) {
-    dispatch({ tipo: 'adicionar', titulo, categoria, lembreteEm, nota: null, origem: 'texto' });
+  function handleAdicionar(
+    titulo: string,
+    categoria: Categoria | null,
+    lembreteEm: string | null,
+    tags: string[],
+    recorrencia: TipoRecorrencia | null,
+    prioridade: Prioridade,
+  ) {
+    dispatch({
+      tipo: 'adicionar',
+      titulo,
+      categoria,
+      lembreteEm,
+      nota: null,
+      origem: 'texto',
+      tags,
+      recorrencia,
+      prioridade,
+    });
     setAnuncio('Tarefa criada');
     avaliarPermissaoAoCriarLembrete(lembreteEm);
   }
@@ -194,11 +223,17 @@ export default function App() {
         )}
 
         <ViewTabs visao={visao} onMudar={setVisao} />
+        <div className="mb-sm">
+          <SearchInput valor={busca} onMudar={setBusca} />
+        </div>
         <div className="mb-md">
           <FilterBar
             categorias={categorias}
             categoriasSelecionadas={categoriasSelecionadas}
+            tagsDisponiveis={tagsDisponiveis}
+            tagsSelecionadas={tagsSelecionadas}
             onAlternar={alternarCategoria}
+            onAlternarTag={alternarTag}
             onLimpar={limparFiltros}
             onGerenciarCategorias={() => setGerenciarCategoriasAberto(true)}
           />
@@ -211,7 +246,8 @@ export default function App() {
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
-            mensagemVazia={filtroAtivo ? textos.listaVaziaFiltro : textos.listaVazia}
+            dispatch={dispatch}
+            mensagemVazia={buscaAtiva ? textos.buscaSemResultado : filtroAtivo ? textos.listaVaziaFiltro : textos.listaVazia}
           />
         )}
         {visao === 'semana' && (
@@ -221,6 +257,7 @@ export default function App() {
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
+            dispatch={dispatch}
           />
         )}
         {visao === 'calendario' && (
@@ -240,6 +277,7 @@ export default function App() {
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
+            dispatch={dispatch}
           />
         )}
       </main>
@@ -256,6 +294,7 @@ export default function App() {
           onConcluir={handleConcluir}
           onExcluir={handleExcluir}
           onAdicionarNoDia={handleAdicionarNoDia}
+          dispatch={dispatch}
         />
       )}
 
@@ -320,6 +359,7 @@ type VisaoProps = {
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  dispatch: Dispatch<AcaoTarefas>;
 };
 
 function VisaoHoje({
@@ -328,6 +368,7 @@ function VisaoHoje({
   tarefaDestacada,
   onConcluir,
   onExcluir,
+  dispatch,
   mensagemVazia,
 }: VisaoProps & { mensagemVazia: string }) {
   const { comData, semData } = agruparHoje(tarefas);
@@ -345,6 +386,7 @@ function VisaoHoje({
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          dispatch={dispatch}
         />
       )}
       {semData.length > 0 && (
@@ -356,6 +398,7 @@ function VisaoHoje({
             tarefaDestacada={tarefaDestacada}
             onConcluir={onConcluir}
             onExcluir={onExcluir}
+            dispatch={dispatch}
           />
         </div>
       )}
@@ -363,7 +406,7 @@ function VisaoHoje({
   );
 }
 
-function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
+function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, dispatch }: VisaoProps) {
   const dias = agruparSemana(tarefas);
 
   return (
@@ -384,6 +427,7 @@ function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExclu
               tarefaDestacada={tarefaDestacada}
               onConcluir={onConcluir}
               onExcluir={onExcluir}
+              dispatch={dispatch}
             />
           )}
         </div>
@@ -392,7 +436,7 @@ function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExclu
   );
 }
 
-function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
+function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, dispatch }: VisaoProps) {
   const concluidas = ordenarConcluidas(tarefas);
 
   return (
@@ -402,6 +446,7 @@ function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onE
       tarefaDestacada={tarefaDestacada}
       onConcluir={onConcluir}
       onExcluir={onExcluir}
+      dispatch={dispatch}
       mensagemVazia={textos.concluidasListaVazia}
       somenteExibirConclusao
     />

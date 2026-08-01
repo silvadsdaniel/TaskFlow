@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import type { Dispatch } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Plus, X } from 'lucide-react';
 import type { Tarefa } from '../types/tarefa';
 import type { CategoriaDef } from '../types/categoria';
+import type { AcaoTarefas } from '../lib/tarefasReducer';
 import { textos } from '../lib/textos';
 import { capitalizarPrimeiraLetra } from '../lib/formatacao';
 import { TaskList } from './TaskList';
@@ -17,6 +19,7 @@ type DayDetailPanelProps = {
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
   onAdicionarNoDia: (titulo: string) => void;
+  dispatch: Dispatch<AcaoTarefas>;
 };
 
 export function DayDetailPanel({
@@ -28,6 +31,7 @@ export function DayDetailPanel({
   onConcluir,
   onExcluir,
   onAdicionarNoDia,
+  dispatch,
 }: DayDetailPanelProps) {
   const [novoTitulo, setNovoTitulo] = useState('');
 
@@ -65,6 +69,7 @@ export function DayDetailPanel({
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          dispatch={dispatch}
           mensagemVazia={textos.diaSemTarefas}
         />
 

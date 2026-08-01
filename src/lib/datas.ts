@@ -1,3 +1,6 @@
+import { addDays, addMonths, addWeeks } from 'date-fns';
+import type { TipoRecorrencia } from '../types/tarefa';
+
 // Brasil não observa horário de verão desde 2019: America/Sao_Paulo é UTC-3 fixo,
 // o que permite calcular limites de dia sem depender de uma lib de timezone.
 const OFFSET_SAO_PAULO_MS = -3 * 60 * 60 * 1000;
@@ -57,4 +60,19 @@ export function valorMinimoDatetimeLocal(): string {
 export function diaEmIso09h(dia: Date): string {
   const preencher = (numero: number) => String(numero).padStart(2, '0');
   return `${dia.getFullYear()}-${preencher(dia.getMonth() + 1)}-${preencher(dia.getDate())}T09:00:00-03:00`;
+}
+
+// Mesma premissa de relógio local em America/Sao_Paulo usada em
+// valorMinimoDatetimeLocal: os getters locais do Date já refletem o fuso
+// certo, então basta somar o intervalo e remontar o ISO com offset fixo.
+export function proximaOcorrencia(lembreteEm: string, tipo: TipoRecorrencia): string {
+  const atual = new Date(lembreteEm);
+  const proxima =
+    tipo === 'diaria' ? addDays(atual, 1) : tipo === 'semanal' ? addWeeks(atual, 1) : addMonths(atual, 1);
+
+  const preencher = (numero: number) => String(numero).padStart(2, '0');
+  return (
+    `${proxima.getFullYear()}-${preencher(proxima.getMonth() + 1)}-${preencher(proxima.getDate())}` +
+    `T${preencher(proxima.getHours())}:${preencher(proxima.getMinutes())}:00-03:00`
+  );
 }
