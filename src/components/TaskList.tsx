@@ -11,6 +11,7 @@ type TaskListProps = {
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  onEditar: (tarefa: Tarefa) => void;
   dispatch: Dispatch<AcaoTarefas>;
   mensagemVazia?: string;
   somenteExibirConclusao?: boolean;
@@ -22,6 +23,7 @@ export function TaskList({
   tarefaDestacada,
   onConcluir,
   onExcluir,
+  onEditar,
   dispatch,
   mensagemVazia = textos.listaVazia,
   somenteExibirConclusao = false,
@@ -42,6 +44,7 @@ export function TaskList({
           destacada={tarefa.id === tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          onEditar={onEditar}
           dispatch={dispatch}
           somenteExibirConclusao={somenteExibirConclusao}
         />

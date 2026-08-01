@@ -18,6 +18,7 @@ type DayDetailPanelProps = {
   onFechar: () => void;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  onEditar: (tarefa: Tarefa) => void;
   onAdicionarNoDia: (titulo: string) => void;
   dispatch: Dispatch<AcaoTarefas>;
 };
@@ -30,6 +31,7 @@ export function DayDetailPanel({
   onFechar,
   onConcluir,
   onExcluir,
+  onEditar,
   onAdicionarNoDia,
   dispatch,
 }: DayDetailPanelProps) {
@@ -69,6 +71,7 @@ export function DayDetailPanel({
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          onEditar={onEditar}
           dispatch={dispatch}
           mensagemVazia={textos.diaSemTarefas}
         />

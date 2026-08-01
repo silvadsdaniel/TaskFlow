@@ -1,4 +1,4 @@
-import type { Categoria, EstadoPersistido, Prioridade, Tarefa, TipoRecorrencia } from '../types/tarefa';
+import type { Categoria, EstadoPersistido, Prioridade, Recorrencia, Tarefa } from '../types/tarefa';
 import { proximaOcorrencia } from './datas';
 
 export type AcaoTarefas =
@@ -10,17 +10,28 @@ export type AcaoTarefas =
       nota: string | null;
       origem: 'texto' | 'voz';
       tags?: string[];
-      recorrencia?: TipoRecorrencia | null;
+      recorrencia?: Recorrencia | null;
       prioridade?: Prioridade;
     }
   | { tipo: 'concluir'; id: string }
   | { tipo: 'excluir'; id: string }
-  | { tipo: 'editarTitulo'; id: string; titulo: string }
+  | {
+      tipo: 'editar';
+      id: string;
+      titulo: string;
+      nota: string | null;
+      categoria: Categoria | null;
+      tags: string[];
+      lembreteEm: string | null;
+      recorrencia: Recorrencia | null;
+      prioridade: Prioridade;
+    }
   | { tipo: 'marcarNotificada'; id: string }
   | { tipo: 'substituirTudo'; tarefas: Tarefa[] }
   | { tipo: 'adicionarSubtarefa'; id: string; texto: string }
   | { tipo: 'alternarSubtarefa'; id: string; subtarefaId: string }
-  | { tipo: 'removerSubtarefa'; id: string; subtarefaId: string };
+  | { tipo: 'removerSubtarefa'; id: string; subtarefaId: string }
+  | { tipo: 'editarSubtarefa'; id: string; subtarefaId: string; texto: string };
 
 export function tarefasReducer(
   estado: EstadoPersistido,
@@ -84,14 +95,25 @@ export function tarefasReducer(
       };
     }
 
-    case 'editarTitulo': {
+    case 'editar': {
       const titulo = acao.titulo.trim();
       if (titulo.length === 0) return estado;
 
       return {
         ...estado,
         tarefas: estado.tarefas.map((tarefa) =>
-          tarefa.id === acao.id ? { ...tarefa, titulo } : tarefa,
+          tarefa.id === acao.id
+            ? {
+                ...tarefa,
+                titulo,
+                nota: acao.nota,
+                categoria: acao.categoria,
+                tags: acao.tags,
+                lembreteEm: acao.lembreteEm,
+                recorrencia: acao.lembreteEm === null ? null : acao.recorrencia,
+                prioridade: acao.prioridade,
+              }
+            : tarefa,
         ),
       };
     }
@@ -150,6 +172,25 @@ export function tarefasReducer(
         tarefas: estado.tarefas.map((tarefa) =>
           tarefa.id === acao.id
             ? { ...tarefa, subtarefas: tarefa.subtarefas.filter((subtarefa) => subtarefa.id !== acao.subtarefaId) }
+            : tarefa,
+        ),
+      };
+    }
+
+    case 'editarSubtarefa': {
+      const texto = acao.texto.trim();
+      if (texto.length === 0) return estado;
+
+      return {
+        ...estado,
+        tarefas: estado.tarefas.map((tarefa) =>
+          tarefa.id === acao.id
+            ? {
+                ...tarefa,
+                subtarefas: tarefa.subtarefas.map((subtarefa) =>
+                  subtarefa.id === acao.subtarefaId ? { ...subtarefa, texto } : subtarefa,
+                ),
+              }
             : tarefa,
         ),
       };

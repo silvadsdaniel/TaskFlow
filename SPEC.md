@@ -186,8 +186,28 @@ Campo de busca por texto (título e nota, case-insensitive, sem acento-sensibili
 Pronto quando: buscar por um trecho do título encontra a tarefa em qualquer visão, e filtrar por tag combina com o filtro de categoria existente.
 
 ### Fase 9 — Tarefas recorrentes
-Campo opcional de recorrência (diária, semanal, mensal) no formulário de tarefa. Ao concluir uma tarefa recorrente, gerar automaticamente a próxima ocorrência com o lembrete deslocado pelo intervalo, preservando título/nota/categoria/tags. Exige migração do estado persistido para incluir `recorrencia: {tipo, ...} | null`.
-Pronto quando: concluir uma tarefa diária cria a ocorrência do dia seguinte automaticamente, e excluir uma ocorrência não afeta as futuras.
+Campo opcional de recorrência no formulário de tarefa, com dois grupos de opção: cadência fixa (diária, semanal, mensal) ou dias específicos da semana (seletor de múltipla escolha Dom–Sáb, ex: "toda segunda, quarta e sexta"). Ao concluir uma tarefa recorrente, gerar automaticamente a próxima ocorrência com o lembrete deslocado (para dias da semana: o próximo dia marcado a partir de amanhã), preservando título/nota/categoria/tags. Formato persistido:
+```typescript
+type Recorrencia =
+  | { tipo: 'diaria' | 'semanal' | 'mensal' }
+  | { tipo: 'diasDaSemana'; dias: number[] }; // 0 = domingo … 6 = sábado, ao menos um dia
+```
+Exige migração do estado persistido: a versão anterior gravava `recorrencia` como string solta (`'diaria' | 'semanal' | 'mensal' | null`); a leitura migra automaticamente para `{ tipo: valor } | null`.
+Pronto quando: concluir uma tarefa diária cria a ocorrência do dia seguinte automaticamente; concluir uma tarefa com dias específicos cria a ocorrência no próximo dia marcado; excluir uma ocorrência não afeta as futuras.
+
+Cálculo de datas: toda a aritmética de "próxima ocorrência" usa os campos de data/hora já convertidos para o fuso fixo America/Sao_Paulo (mesma técnica de deslocamento fixo usada em `limitesDoDiaAtual`), nunca os getters locais do `Date` do navegador — evita depender do fuso configurado no sistema operacional de quem roda o app.
+
+### Fase 12 — Editar tarefa e subtarefa existentes
+Hoje só é possível criar, concluir e excluir — não editar depois de criada. Adiciona:
+- Um modal de edição (acionado por um botão de editar no card da tarefa) reaproveitando os mesmos campos do formulário de criação: título, nota, categoria, tags, lembrete, recorrência, prioridade.
+- Edição do texto de um item de checklist já criado, inline na própria lista de subtarefas (sem abrir modal).
+Editar não gera uma nova tarefa nem mexe em `criadaEm`/`concluidaEm`/`notificada`.
+Pronto quando: abrir uma tarefa existente, mudar qualquer campo e salvar reflete a mudança sem perder o restante dos dados da tarefa; editar o texto de uma subtarefa não desmarca seu estado de concluída.
+
+## Auditoria de fuso horário (fuso fixo America/Sao_Paulo)
+Revisão pontual pedida para confirmar que todo cálculo de data segue o fuso fixo -03:00, sem depender do relógio/fuso do sistema operacional:
+- `limitesDoDiaAtual`, `limitesDosProximosDias` e o novo cálculo de próxima ocorrência (Fase 9) já fazem a aritmética inteira em UTC com o offset fixo somado/subtraído manualmente — corretos independentemente do fuso do SO.
+- `valorDatetimeLocalParaIso`, `valorMinimoDatetimeLocal`, `diaEmIso09h` e toda a grade do calendário (`CalendarGrid`/`lib/calendario.ts`) dependem do valor devolvido pelo `<input type="datetime-local">` e dos getters locais do `Date` do navegador — isso é uma limitação de plataforma (o input HTML nativo não tem como ser "fixado" em outro fuso sem substituí-lo por um seletor 100% customizado) e só produz o resultado correto se o sistema operacional de quem usa o app estiver configurado para America/Sao_Paulo. Documentado desde a Fase 1; não corrigido nesta rodada — corrigir de verdade exigiria trocar o input nativo por um seletor de data/hora próprio, o que é uma mudança de escopo maior e não foi pedido.
 
 ### Fase 10 — Subtarefas (checklist)
 Lista de itens simples (texto + concluído) dentro de uma tarefa, sem hierarquia adicional. Progresso exibido como "2/5" no card da tarefa. Exige migração do estado persistido (`subtarefas: []`).

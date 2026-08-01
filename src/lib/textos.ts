@@ -101,6 +101,8 @@ export const textos = {
   recorrenciaDiaria: 'Todos os dias',
   recorrenciaSemanal: 'Toda semana',
   recorrenciaMensal: 'Todo mês',
+  recorrenciaDiasDaSemana: 'Dias específicos',
+  avisoSelecioneUmDia: 'Selecione ao menos um dia da semana.',
 
   rotuloPrioridade: 'Marcar como importante',
   badgeImportante: 'Importante',
@@ -109,4 +111,12 @@ export const textos = {
   placeholderNovaSubtarefa: 'Novo item da lista…',
   botaoRemoverSubtarefa: 'Remover item',
   botaoExpandirSubtarefas: 'Itens da tarefa',
+  botaoEditarSubtarefa: 'Editar item',
+  botaoSalvarSubtarefa: 'Salvar item',
+
+  botaoEditarTarefa: 'Editar tarefa',
+  tituloEditarTarefa: 'Editar tarefa',
+  botaoSalvarEdicao: 'Salvar',
+  botaoCancelarEdicao: 'Cancelar',
+  tarefaEditada: 'Tarefa atualizada',
 } as const;
