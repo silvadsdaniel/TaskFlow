@@ -7,6 +7,7 @@ import { useAgendadorLembretes } from './hooks/useAgendadorLembretes';
 import { useCapturaVoz, type EstadoCapturaVoz } from './hooks/useCapturaVoz';
 import { useTema } from './hooks/useTema';
 import { useDesfazer } from './hooks/useDesfazer';
+import { useCategorias } from './hooks/useCategorias';
 import { TaskForm } from './components/TaskForm';
 import { TaskList } from './components/TaskList';
 import { FilterBar } from './components/FilterBar';
@@ -21,8 +22,9 @@ import { CalendarGrid } from './components/CalendarGrid';
 import { DayDetailPanel } from './components/DayDetailPanel';
 import { ThemeToggle } from './components/ThemeToggle';
 import { UndoToast } from './components/UndoToast';
+import { CategoryManager } from './components/CategoryManager';
 import { textos } from './lib/textos';
-import { agruparHoje, agruparSemana } from './lib/visoes';
+import { agruparHoje, agruparSemana, ordenarConcluidas } from './lib/visoes';
 import { diaEmIso09h } from './lib/datas';
 import { tarefasComLembreteNoDia } from './lib/calendario';
 import { capitalizarPrimeiraLetra } from './lib/formatacao';
@@ -34,6 +36,7 @@ import {
   suportado,
 } from './lib/notificacoes';
 import type { Categoria } from './types/tarefa';
+import type { CategoriaDef } from './types/categoria';
 
 export default function App() {
   const { tarefas, dispatch, corrompido } = useTarefas();
@@ -48,13 +51,15 @@ export default function App() {
   const [explicarNotificacoesAberto, setExplicarNotificacoesAberto] = useState(false);
   const [mesVisualizado, setMesVisualizado] = useState(() => new Date());
   const [diaSelecionado, setDiaSelecionado] = useState<Date | null>(null);
+  const [gerenciarCategoriasAberto, setGerenciarCategoriasAberto] = useState(false);
+  const { categorias, criar: criarCategoria, editar: editarCategoria } = useCategorias();
   const {
     estado: estadoVoz,
     iniciar: iniciarVoz,
     parar: pararVoz,
     cancelar: cancelarVoz,
     resetar: resetarVoz,
-  } = useCapturaVoz();
+  } = useCapturaVoz(categorias);
   const { tema, alternarTema } = useTema();
   const { idPendente, tipoPendente, agendar: agendarDesfazer, desfazer } = useDesfazer(dispatch);
 
@@ -104,7 +109,7 @@ export default function App() {
 
   const fasesComPainelAberto: EstadoCapturaVoz['fase'][] = ['capturando', 'processando', 'erro', 'confirmando'];
   const painelVozAberto = fasesComPainelAberto.includes(estadoVoz.fase);
-  const algumPainelAberto = painelVozAberto || diaSelecionado !== null;
+  const algumPainelAberto = painelVozAberto || diaSelecionado !== null || gerenciarCategoriasAberto;
 
   useEffect(() => {
     if (!algumPainelAberto) return;
@@ -112,11 +117,12 @@ export default function App() {
     function aoPressionarTecla(evento: KeyboardEvent) {
       if (evento.key !== 'Escape') return;
       if (painelVozAberto) cancelarVoz();
+      else if (gerenciarCategoriasAberto) setGerenciarCategoriasAberto(false);
       else setDiaSelecionado(null);
     }
     document.addEventListener('keydown', aoPressionarTecla);
     return () => document.removeEventListener('keydown', aoPressionarTecla);
-  }, [algumPainelAberto, painelVozAberto, cancelarVoz]);
+  }, [algumPainelAberto, painelVozAberto, gerenciarCategoriasAberto, cancelarVoz]);
 
   async function handlePermitirNotificacoes() {
     const resultado = await solicitarPermissao();
@@ -164,15 +170,18 @@ export default function App() {
         <ViewTabs visao={visao} onMudar={setVisao} />
         <div className="mb-md">
           <FilterBar
+            categorias={categorias}
             categoriasSelecionadas={categoriasSelecionadas}
             onAlternar={alternarCategoria}
             onLimpar={limparFiltros}
+            onGerenciarCategorias={() => setGerenciarCategoriasAberto(true)}
           />
         </div>
 
         {visao === 'hoje' && (
           <VisaoHoje
             tarefas={tarefasFiltradas}
+            categorias={categorias}
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
@@ -182,6 +191,7 @@ export default function App() {
         {visao === 'semana' && (
           <VisaoSemana
             tarefas={tarefasFiltradas}
+            categorias={categorias}
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
@@ -191,24 +201,44 @@ export default function App() {
           <CalendarGrid
             mesVisualizado={mesVisualizado}
             tarefas={tarefasFiltradas}
+            categorias={categorias}
             diaSelecionado={diaSelecionado}
             onMudarMes={setMesVisualizado}
             onSelecionarDia={setDiaSelecionado}
           />
         )}
+        {visao === 'concluidas' && (
+          <VisaoConcluidas
+            tarefas={tarefasFiltradas}
+            categorias={categorias}
+            tarefaDestacada={tarefaDestacada}
+            onConcluir={handleConcluir}
+            onExcluir={handleExcluir}
+          />
+        )}
       </main>
 
-      <TaskForm onAdicionar={handleAdicionar} onIniciarVoz={iniciarVoz} />
+      <TaskForm categorias={categorias} onAdicionar={handleAdicionar} onIniciarVoz={iniciarVoz} />
 
       {diaSelecionado && (
         <DayDetailPanel
           dia={diaSelecionado}
           tarefas={tarefasComLembreteNoDia(tarefasFiltradas, diaSelecionado)}
+          categorias={categorias}
           tarefaDestacada={tarefaDestacada}
           onFechar={() => setDiaSelecionado(null)}
           onConcluir={handleConcluir}
           onExcluir={handleExcluir}
           onAdicionarNoDia={handleAdicionarNoDia}
+        />
+      )}
+
+      {gerenciarCategoriasAberto && (
+        <CategoryManager
+          categorias={categorias}
+          onFechar={() => setGerenciarCategoriasAberto(false)}
+          onCriar={criarCategoria}
+          onEditar={editarCategoria}
         />
       )}
 
@@ -227,6 +257,7 @@ export default function App() {
       {estadoVoz.fase === 'confirmando' && (
         <VoiceConfirmCard
           sugestao={estadoVoz.sugestao}
+          categorias={categorias}
           onConfirmar={handleConfirmarVoz}
           onDescartar={resetarVoz}
         />
@@ -251,6 +282,7 @@ export default function App() {
 
 type VisaoProps = {
   tarefas: ReturnType<typeof useTarefas>['tarefas'];
+  categorias: CategoriaDef[];
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
@@ -258,6 +290,7 @@ type VisaoProps = {
 
 function VisaoHoje({
   tarefas,
+  categorias,
   tarefaDestacada,
   onConcluir,
   onExcluir,
@@ -274,6 +307,7 @@ function VisaoHoje({
       {comData.length > 0 && (
         <TaskList
           tarefas={comData}
+          categorias={categorias}
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
@@ -284,6 +318,7 @@ function VisaoHoje({
           <h2 className="mb-sm text-label-md text-on-surface-variant">{textos.secaoSemData}</h2>
           <TaskList
             tarefas={semData}
+            categorias={categorias}
             tarefaDestacada={tarefaDestacada}
             onConcluir={onConcluir}
             onExcluir={onExcluir}
@@ -294,7 +329,7 @@ function VisaoHoje({
   );
 }
 
-function VisaoSemana({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
+function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
   const dias = agruparSemana(tarefas);
 
   return (
@@ -311,6 +346,7 @@ function VisaoSemana({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoP
           ) : (
             <TaskList
               tarefas={dia.tarefas}
+              categorias={categorias}
               tarefaDestacada={tarefaDestacada}
               onConcluir={onConcluir}
               onExcluir={onExcluir}
@@ -319,5 +355,21 @@ function VisaoSemana({ tarefas, tarefaDestacada, onConcluir, onExcluir }: VisaoP
         </div>
       ))}
     </div>
+  );
+}
+
+function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir }: VisaoProps) {
+  const concluidas = ordenarConcluidas(tarefas);
+
+  return (
+    <TaskList
+      tarefas={concluidas}
+      categorias={categorias}
+      tarefaDestacada={tarefaDestacada}
+      onConcluir={onConcluir}
+      onExcluir={onExcluir}
+      mensagemVazia={textos.concluidasListaVazia}
+      somenteExibirConclusao
+    />
   );
 }

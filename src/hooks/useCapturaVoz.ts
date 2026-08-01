@@ -3,6 +3,7 @@ import { iniciarReconhecimento, type ControleReconhecimento, type ErroReconhecim
 import { interpretarTarefa, type ResultadoInterpretacao } from '../lib/ia';
 import { textos } from '../lib/textos';
 import type { SugestaoTarefa } from '../components/VoiceConfirmCard';
+import type { CategoriaDef } from '../types/categoria';
 
 export type EstadoCapturaVoz =
   | { fase: 'ociosa' }
@@ -34,9 +35,11 @@ function construirSugestao(textoFinal: string, resultado: ResultadoInterpretacao
   };
 }
 
-export function useCapturaVoz() {
+export function useCapturaVoz(categorias: CategoriaDef[]) {
   const [estado, setEstado] = useState<EstadoCapturaVoz>({ fase: 'ociosa' });
   const controleRef = useRef<ControleReconhecimento | null>(null);
+  const categoriasRef = useRef(categorias);
+  categoriasRef.current = categorias;
 
   const processarTranscricao = useCallback((textoFinal: string) => {
     setEstado((atual) => (atual.fase === 'capturando' ? { fase: 'processando' } : atual));
@@ -46,7 +49,7 @@ export function useCapturaVoz() {
       return;
     }
 
-    interpretarTarefa(textoFinal).then((resultado) => {
+    interpretarTarefa(textoFinal, categoriasRef.current).then((resultado) => {
       setEstado((atual) =>
         atual.fase === 'processando'
           ? { fase: 'confirmando', sugestao: construirSugestao(textoFinal, resultado) }

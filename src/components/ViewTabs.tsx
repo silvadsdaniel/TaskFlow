@@ -1,6 +1,6 @@
 import { textos } from '../lib/textos';
 
-export type Visao = 'hoje' | 'semana' | 'calendario';
+export type Visao = 'hoje' | 'semana' | 'calendario' | 'concluidas';
 
 type ViewTabsProps = {
   visao: Visao;
@@ -11,6 +11,7 @@ const ABAS: { visao: Visao; rotulo: string }[] = [
   { visao: 'hoje', rotulo: textos.abaHoje },
   { visao: 'semana', rotulo: textos.abaSemana },
   { visao: 'calendario', rotulo: textos.abaCalendario },
+  { visao: 'concluidas', rotulo: textos.abaConcluidas },
 ];
 
 export function ViewTabs({ visao, onMudar }: ViewTabsProps) {

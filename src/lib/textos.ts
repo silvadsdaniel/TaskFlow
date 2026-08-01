@@ -62,4 +62,13 @@ export const textos = {
   avisoNotificacoesNaoAtivadas:
     'Você tem lembretes marcados, mas as notificações ainda não foram ativadas.',
   botaoAtivarNotificacoes: 'Ativar notificações',
+  botaoGerenciarCategorias: 'Gerenciar categorias',
+  tituloGerenciarCategorias: 'Categorias',
+  botaoNovaCategoria: 'Nova categoria',
+  botaoEditarCategoria: 'Editar categoria',
+  placeholderNomeCategoria: 'Nome da categoria',
+  botaoSalvarCategoria: 'Salvar',
+  botaoCancelarCategoria: 'Cancelar',
+  abaConcluidas: 'Concluídas',
+  concluidasListaVazia: 'Nenhuma tarefa concluída ainda.',
 } as const;
