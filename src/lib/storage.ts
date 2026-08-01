@@ -5,13 +5,13 @@ const CHAVE = 'tarefas:v1';
 const CHAVE_BACKUP = 'tarefas:v1:backup';
 const DEBOUNCE_MS = 300;
 
-const categoriaSchema = z.enum(['trabalho', 'casa', 'familia', 'compras']);
-
 const tarefaSchema = z.object({
   id: z.string(),
   titulo: z.string().min(1).max(200),
   nota: z.string().nullable(),
-  categoria: categoriaSchema.nullable(),
+  // Id de uma categoria definida pelo usuário (ver categorias:v1) — não é
+  // mais um enum fixo, então só validamos que é string ou null.
+  categoria: z.string().nullable(),
   lembreteEm: z.string().nullable(),
   concluida: z.boolean(),
   criadaEm: z.string(),

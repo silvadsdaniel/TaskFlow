@@ -1,21 +1,26 @@
 import type { Tarefa } from '../types/tarefa';
+import type { CategoriaDef } from '../types/categoria';
 import { textos } from '../lib/textos';
 import { TaskItem } from './TaskItem';
 
 type TaskListProps = {
   tarefas: Tarefa[];
+  categorias: CategoriaDef[];
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
   mensagemVazia?: string;
+  somenteExibirConclusao?: boolean;
 };
 
 export function TaskList({
   tarefas,
+  categorias,
   tarefaDestacada,
   onConcluir,
   onExcluir,
   mensagemVazia = textos.listaVazia,
+  somenteExibirConclusao = false,
 }: TaskListProps) {
   if (tarefas.length === 0) {
     return (
@@ -29,9 +34,11 @@ export function TaskList({
         <TaskItem
           key={tarefa.id}
           tarefa={tarefa}
+          categorias={categorias}
           destacada={tarefa.id === tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          somenteExibirConclusao={somenteExibirConclusao}
         />
       ))}
     </div>

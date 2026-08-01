@@ -3,42 +3,65 @@
 // da chave"); para produção, essa chamada precisaria passar por um proxy que
 // injete a chave no servidor.
 import { z } from 'zod';
+import type { CategoriaDef } from '../types/categoria';
 
 const ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const MODELO = 'llama-3.3-70b-versatile';
 const TIMEOUT_MS = 10_000;
 
+// A IA não conhece os ids das categorias do usuário, só devolve o nome —
+// resolvemos para o id correspondente depois da resposta (ver resolverCategoria).
 const respostaIaSchema = z.object({
   titulo: z.string().min(1),
   nota: z.string().nullable(),
-  categoria: z.enum(['trabalho', 'casa', 'familia', 'compras']).nullable(),
+  categoria: z.string().nullable(),
   lembrete: z.string().nullable(),
   confianca: z.enum(['alta', 'media', 'baixa']),
 });
 
-export type TarefaInterpretada = z.infer<typeof respostaIaSchema>;
+export type TarefaInterpretada = {
+  titulo: string;
+  nota: string | null;
+  categoria: string | null;
+  lembrete: string | null;
+  confianca: 'alta' | 'media' | 'baixa';
+};
 
 export type ResultadoInterpretacao =
   | { ok: true; tarefa: TarefaInterpretada }
   | { ok: false };
 
-function montarPrompt(transcricao: string): string {
+function montarPrompt(transcricao: string, categorias: CategoriaDef[]): string {
   const agora = new Date().toISOString();
+  const nomesCategorias = categorias.map((categoria) => categoria.nome);
+  const opcoesCategoria =
+    nomesCategorias.length > 0
+      ? nomesCategorias.map((nome) => `"${nome}"`).join('|') + '|null'
+      : 'null';
+
   return `Você extrai tarefas de frases em português brasileiro.
 Data e hora atual: ${agora} (timezone America/Sao_Paulo).
 
 Retorne APENAS um objeto JSON, sem markdown, sem explicação, no formato:
-{"titulo": string, "nota": string|null, "categoria": "trabalho"|"casa"|"familia"|"compras"|null, "lembrete": string|null, "confianca": "alta"|"media"|"baixa"}
+{"titulo": string, "nota": string|null, "categoria": ${opcoesCategoria}, "lembrete": string|null, "confianca": "alta"|"media"|"baixa"}
 
 Regras:
 - "titulo": ação principal, imperativo curto, sem a parte temporal.
 - "lembrete": ISO 8601 com offset, ou null se não houver referência de tempo.
 - Resolva expressões relativas ("amanhã", "sexta que vem", "daqui a duas horas") com base na data atual informada.
 - Se houver data sem hora, use 09:00.
-- "categoria": infira pelo conteúdo. Use null quando não estiver claro; não force.
+- "categoria": escolha exatamente um destes nomes se fizer sentido: ${nomesCategorias.join(', ') || '(nenhuma categoria cadastrada)'}. Use null quando não estiver claro ou nenhuma se encaixar; nunca invente uma categoria nova.
 - "confianca": "baixa" se a frase for ambígua.
 
 Frase: "${transcricao}"`;
+}
+
+function resolverCategoria(nome: string | null, categorias: CategoriaDef[]): string | null {
+  if (nome === null) return null;
+  const encontrada = categorias.find(
+    (categoria) => categoria.nome.toLowerCase() === nome.toLowerCase(),
+  );
+  return encontrada?.id ?? null;
 }
 
 function removerCercasMarkdown(texto: string): string {
@@ -87,11 +110,14 @@ function extrairConteudo(dados: unknown): string | null {
   return typeof conteudo === 'string' ? conteudo : null;
 }
 
-export async function interpretarTarefa(transcricao: string): Promise<ResultadoInterpretacao> {
+export async function interpretarTarefa(
+  transcricao: string,
+  categorias: CategoriaDef[],
+): Promise<ResultadoInterpretacao> {
   const chave = import.meta.env.VITE_AI_API_KEY;
   if (!chave) return { ok: false };
 
-  const prompt = montarPrompt(transcricao);
+  const prompt = montarPrompt(transcricao, categorias);
 
   let bruto: string;
   try {
@@ -107,7 +133,15 @@ export async function interpretarTarefa(transcricao: string): Promise<ResultadoI
   try {
     const json: unknown = JSON.parse(removerCercasMarkdown(bruto));
     const resultado = respostaIaSchema.safeParse(json);
-    return resultado.success ? { ok: true, tarefa: resultado.data } : { ok: false };
+    if (!resultado.success) return { ok: false };
+
+    return {
+      ok: true,
+      tarefa: {
+        ...resultado.data,
+        categoria: resolverCategoria(resultado.data.categoria, categorias),
+      },
+    };
   } catch {
     return { ok: false };
   }

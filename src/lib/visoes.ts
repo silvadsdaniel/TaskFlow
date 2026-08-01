@@ -42,6 +42,12 @@ export function agruparHoje(tarefas: Tarefa[]): VisaoHoje {
   return { comData: ordenarTarefas(comData), semData: ordenarTarefas(semData) };
 }
 
+export function ordenarConcluidas(tarefas: Tarefa[]): Tarefa[] {
+  return tarefas
+    .filter((tarefa) => tarefa.concluida && tarefa.concluidaEm !== null)
+    .sort((a, b) => new Date(b.concluidaEm!).getTime() - new Date(a.concluidaEm!).getTime());
+}
+
 export type DiaDaSemana = {
   inicio: Date;
   tarefas: Tarefa[];

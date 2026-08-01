@@ -1,4 +1,6 @@
-export type Categoria = 'trabalho' | 'casa' | 'familia' | 'compras';
+// Id de uma CategoriaDef (ver src/types/categoria.ts). Categorias hoje são
+// definidas pelo usuário, então não há mais um conjunto fixo de valores.
+export type Categoria = string;
 
 export type Tarefa = {
   id: string;

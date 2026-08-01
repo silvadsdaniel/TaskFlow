@@ -2,7 +2,8 @@ import { format, isSameDay, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Tarefa } from '../types/tarefa';
-import { corCategoria } from '../lib/categorias';
+import type { CategoriaDef } from '../types/categoria';
+import { encontrarCategoria } from '../lib/categorias';
 import { diasDaGrade, mesAnterior, proximoMes, tarefasComLembreteNoDia } from '../lib/calendario';
 import { capitalizarPrimeiraLetra } from '../lib/formatacao';
 import { textos } from '../lib/textos';
@@ -13,6 +14,7 @@ const MAX_PONTOS_POR_DIA = 3;
 type CalendarGridProps = {
   mesVisualizado: Date;
   tarefas: Tarefa[];
+  categorias: CategoriaDef[];
   diaSelecionado: Date | null;
   onMudarMes: (mes: Date) => void;
   onSelecionarDia: (dia: Date) => void;
@@ -21,6 +23,7 @@ type CalendarGridProps = {
 export function CalendarGrid({
   mesVisualizado,
   tarefas,
+  categorias,
   diaSelecionado,
   onMudarMes,
   onSelecionarDia,
@@ -87,14 +90,16 @@ export function CalendarGrid({
               </span>
               {pontos.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {pontos.map((tarefa) => (
-                    <span
-                      key={tarefa.id}
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        tarefa.categoria ? corCategoria[tarefa.categoria] : 'bg-outline'
-                      }`}
-                    />
-                  ))}
+                  {pontos.map((tarefa) => {
+                    const categoria = encontrarCategoria(categorias, tarefa.categoria);
+                    return (
+                      <span
+                        key={tarefa.id}
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: categoria?.cor ?? 'rgb(var(--color-outline))' }}
+                      />
+                    );
+                  })}
                 </div>
               )}
               {extra > 0 && <span className="text-label-sm text-on-surface-variant">+{extra}</span>}

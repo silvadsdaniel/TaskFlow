@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { Bell, Plus, X } from 'lucide-react';
 import { textos } from '../lib/textos';
-import { CATEGORIAS } from '../lib/categorias';
 import type { Categoria } from '../types/tarefa';
+import type { CategoriaDef } from '../types/categoria';
 import { CategoryChip } from './CategoryChip';
 import { valorDatetimeLocalParaIso, valorMinimoDatetimeLocal } from '../lib/datas';
 import { VoiceButton } from './VoiceButton';
 import { suportadoReconhecimentoVoz } from '../lib/voz';
 
 type TaskFormProps = {
+  categorias: CategoriaDef[];
   onAdicionar: (titulo: string, categoria: Categoria | null, lembreteEm: string | null) => void;
   onIniciarVoz: () => void;
 };
 
-export function TaskForm({ onAdicionar, onIniciarVoz }: TaskFormProps) {
+export function TaskForm({ categorias, onAdicionar, onIniciarVoz }: TaskFormProps) {
   const [titulo, setTitulo] = useState('');
   const [categoria, setCategoria] = useState<Categoria | null>(null);
   const [valorLembrete, setValorLembrete] = useState('');
@@ -35,12 +36,12 @@ export function TaskForm({ onAdicionar, onIniciarVoz }: TaskFormProps) {
       {titulo.length > 0 && (
         <div className="flex w-full max-w-[640px] flex-col gap-sm">
           <div className="no-scrollbar flex gap-sm overflow-x-auto">
-            {CATEGORIAS.map((opcao) => (
+            {categorias.map((opcao) => (
               <CategoryChip
-                key={opcao}
+                key={opcao.id}
                 categoria={opcao}
-                ativo={categoria === opcao}
-                onClick={() => setCategoria((atual) => (atual === opcao ? null : opcao))}
+                ativo={categoria === opcao.id}
+                onClick={() => setCategoria((atual) => (atual === opcao.id ? null : opcao.id))}
               />
             ))}
           </div>
