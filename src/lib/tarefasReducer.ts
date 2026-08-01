@@ -12,7 +12,8 @@ export type AcaoTarefas =
   | { tipo: 'concluir'; id: string }
   | { tipo: 'excluir'; id: string }
   | { tipo: 'editarTitulo'; id: string; titulo: string }
-  | { tipo: 'marcarNotificada'; id: string };
+  | { tipo: 'marcarNotificada'; id: string }
+  | { tipo: 'substituirTudo'; tarefas: Tarefa[] };
 
 export function tarefasReducer(
   estado: EstadoPersistido,
@@ -75,6 +76,10 @@ export function tarefasReducer(
           tarefa.id === acao.id ? { ...tarefa, notificada: true } : tarefa,
         ),
       };
+    }
+
+    case 'substituirTudo': {
+      return { ...estado, tarefas: acao.tarefas };
     }
 
     default:

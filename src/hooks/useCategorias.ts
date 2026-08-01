@@ -23,5 +23,9 @@ export function useCategorias() {
     );
   }
 
-  return { categorias, criar, editar };
+  function substituir(novasCategorias: CategoriaDef[]): void {
+    setCategorias(novasCategorias);
+  }
+
+  return { categorias, criar, editar, substituir };
 }

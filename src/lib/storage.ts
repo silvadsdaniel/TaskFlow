@@ -5,7 +5,7 @@ const CHAVE = 'tarefas:v1';
 const CHAVE_BACKUP = 'tarefas:v1:backup';
 const DEBOUNCE_MS = 300;
 
-const tarefaSchema = z.object({
+export const tarefaSchema = z.object({
   id: z.string(),
   titulo: z.string().min(1).max(200),
   nota: z.string().nullable(),
