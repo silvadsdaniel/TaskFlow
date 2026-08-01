@@ -87,4 +87,26 @@ export const textos = {
   botaoCancelarImportar: 'Cancelar',
   dadosExportados: 'Backup exportado',
   dadosImportados: 'Dados importados com sucesso',
+
+  placeholderBusca: 'Buscar tarefas…',
+  botaoLimparBusca: 'Limpar busca',
+  buscaSemResultado: 'Nenhuma tarefa encontrada para essa busca.',
+  rotuloTags: 'Tags',
+  placeholderNovaTag: 'Adicionar tag e pressionar Enter',
+  botaoRemoverTag: 'Remover tag',
+  filtrarPorTags: 'Filtrar por tag',
+
+  rotuloRecorrencia: 'Repetir',
+  recorrenciaNenhuma: 'Não repetir',
+  recorrenciaDiaria: 'Todos os dias',
+  recorrenciaSemanal: 'Toda semana',
+  recorrenciaMensal: 'Todo mês',
+
+  rotuloPrioridade: 'Marcar como importante',
+  badgeImportante: 'Importante',
+
+  botaoAdicionarSubtarefa: 'Adicionar item',
+  placeholderNovaSubtarefa: 'Novo item da lista…',
+  botaoRemoverSubtarefa: 'Remover item',
+  botaoExpandirSubtarefas: 'Itens da tarefa',
 } as const;
