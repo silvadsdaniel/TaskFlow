@@ -2,7 +2,12 @@
 // definidas pelo usuário, então não há mais um conjunto fixo de valores.
 export type Categoria = string;
 
-export type TipoRecorrencia = 'diaria' | 'semanal' | 'mensal';
+export type Recorrencia =
+  | { tipo: 'diaria' }
+  | { tipo: 'semanal' }
+  | { tipo: 'mensal' }
+  // 0 = domingo … 6 = sábado. Sempre com ao menos um dia.
+  | { tipo: 'diasDaSemana'; dias: number[] };
 
 export type Prioridade = 'normal' | 'importante';
 
@@ -19,7 +24,7 @@ export type Tarefa = {
   categoria: Categoria | null;
   tags: string[];
   lembreteEm: string | null;
-  recorrencia: TipoRecorrencia | null;
+  recorrencia: Recorrencia | null;
   prioridade: Prioridade;
   subtarefas: Subtarefa[];
   concluida: boolean;
@@ -30,6 +35,6 @@ export type Tarefa = {
 };
 
 export type EstadoPersistido = {
-  versao: 2;
+  versao: 3;
   tarefas: Tarefa[];
 };

@@ -26,6 +26,7 @@ import { CategoryManager } from './components/CategoryManager';
 import { BackupPanel } from './components/BackupPanel';
 import { BackupButton } from './components/BackupButton';
 import { SearchInput } from './components/SearchInput';
+import { TaskEditModal } from './components/TaskEditModal';
 import { textos } from './lib/textos';
 import { exportarBackup } from './lib/backup';
 import { agruparHoje, agruparSemana, ordenarConcluidas } from './lib/visoes';
@@ -40,7 +41,7 @@ import {
   solicitarPermissao,
   suportado,
 } from './lib/notificacoes';
-import type { Categoria, Prioridade, Tarefa, TipoRecorrencia } from './types/tarefa';
+import type { Categoria, Prioridade, Recorrencia, Tarefa } from './types/tarefa';
 import type { CategoriaDef } from './types/categoria';
 import type { Dispatch } from 'react';
 import type { AcaoTarefas } from './lib/tarefasReducer';
@@ -62,6 +63,7 @@ export default function App() {
   const [diaSelecionado, setDiaSelecionado] = useState<Date | null>(null);
   const [gerenciarCategoriasAberto, setGerenciarCategoriasAberto] = useState(false);
   const [backupAberto, setBackupAberto] = useState(false);
+  const [tarefaEditando, setTarefaEditando] = useState<Tarefa | null>(null);
   const {
     categorias,
     criar: criarCategoria,
@@ -107,7 +109,7 @@ export default function App() {
     categoria: Categoria | null,
     lembreteEm: string | null,
     tags: string[],
-    recorrencia: TipoRecorrencia | null,
+    recorrencia: Recorrencia | null,
     prioridade: Prioridade,
   ) {
     dispatch({
@@ -145,10 +147,30 @@ export default function App() {
     avaliarPermissaoAoCriarLembrete(lembreteEm);
   }
 
+  function handleSalvarEdicao(
+    id: string,
+    titulo: string,
+    nota: string | null,
+    categoria: Categoria | null,
+    tags: string[],
+    lembreteEm: string | null,
+    recorrencia: Recorrencia | null,
+    prioridade: Prioridade,
+  ) {
+    dispatch({ tipo: 'editar', id, titulo, nota, categoria, tags, lembreteEm, recorrencia, prioridade });
+    setAnuncio(textos.tarefaEditada);
+    avaliarPermissaoAoCriarLembrete(lembreteEm);
+    setTarefaEditando(null);
+  }
+
   const fasesComPainelAberto: EstadoCapturaVoz['fase'][] = ['capturando', 'processando', 'erro', 'confirmando'];
   const painelVozAberto = fasesComPainelAberto.includes(estadoVoz.fase);
   const algumPainelAberto =
-    painelVozAberto || diaSelecionado !== null || gerenciarCategoriasAberto || backupAberto;
+    painelVozAberto ||
+    diaSelecionado !== null ||
+    gerenciarCategoriasAberto ||
+    backupAberto ||
+    tarefaEditando !== null;
 
   useEffect(() => {
     if (!algumPainelAberto) return;
@@ -158,11 +180,12 @@ export default function App() {
       if (painelVozAberto) cancelarVoz();
       else if (gerenciarCategoriasAberto) setGerenciarCategoriasAberto(false);
       else if (backupAberto) setBackupAberto(false);
+      else if (tarefaEditando !== null) setTarefaEditando(null);
       else setDiaSelecionado(null);
     }
     document.addEventListener('keydown', aoPressionarTecla);
     return () => document.removeEventListener('keydown', aoPressionarTecla);
-  }, [algumPainelAberto, painelVozAberto, gerenciarCategoriasAberto, backupAberto, cancelarVoz]);
+  }, [algumPainelAberto, painelVozAberto, gerenciarCategoriasAberto, backupAberto, tarefaEditando, cancelarVoz]);
 
   async function handlePermitirNotificacoes() {
     const resultado = await solicitarPermissao();
@@ -246,6 +269,7 @@ export default function App() {
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
+            onEditar={setTarefaEditando}
             dispatch={dispatch}
             mensagemVazia={buscaAtiva ? textos.buscaSemResultado : filtroAtivo ? textos.listaVaziaFiltro : textos.listaVazia}
           />
@@ -257,6 +281,7 @@ export default function App() {
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
+            onEditar={setTarefaEditando}
             dispatch={dispatch}
           />
         )}
@@ -277,6 +302,7 @@ export default function App() {
             tarefaDestacada={tarefaDestacada}
             onConcluir={handleConcluir}
             onExcluir={handleExcluir}
+            onEditar={setTarefaEditando}
             dispatch={dispatch}
           />
         )}
@@ -293,8 +319,18 @@ export default function App() {
           onFechar={() => setDiaSelecionado(null)}
           onConcluir={handleConcluir}
           onExcluir={handleExcluir}
+          onEditar={setTarefaEditando}
           onAdicionarNoDia={handleAdicionarNoDia}
           dispatch={dispatch}
+        />
+      )}
+
+      {tarefaEditando && (
+        <TaskEditModal
+          tarefa={tarefaEditando}
+          categorias={categorias}
+          onFechar={() => setTarefaEditando(null)}
+          onSalvar={handleSalvarEdicao}
         />
       )}
 
@@ -359,6 +395,7 @@ type VisaoProps = {
   tarefaDestacada: string | null;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  onEditar: (tarefa: Tarefa) => void;
   dispatch: Dispatch<AcaoTarefas>;
 };
 
@@ -368,6 +405,7 @@ function VisaoHoje({
   tarefaDestacada,
   onConcluir,
   onExcluir,
+  onEditar,
   dispatch,
   mensagemVazia,
 }: VisaoProps & { mensagemVazia: string }) {
@@ -386,6 +424,7 @@ function VisaoHoje({
           tarefaDestacada={tarefaDestacada}
           onConcluir={onConcluir}
           onExcluir={onExcluir}
+          onEditar={onEditar}
           dispatch={dispatch}
         />
       )}
@@ -398,6 +437,7 @@ function VisaoHoje({
             tarefaDestacada={tarefaDestacada}
             onConcluir={onConcluir}
             onExcluir={onExcluir}
+            onEditar={onEditar}
             dispatch={dispatch}
           />
         </div>
@@ -406,7 +446,7 @@ function VisaoHoje({
   );
 }
 
-function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, dispatch }: VisaoProps) {
+function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, onEditar, dispatch }: VisaoProps) {
   const dias = agruparSemana(tarefas);
 
   return (
@@ -427,6 +467,7 @@ function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExclu
               tarefaDestacada={tarefaDestacada}
               onConcluir={onConcluir}
               onExcluir={onExcluir}
+              onEditar={onEditar}
               dispatch={dispatch}
             />
           )}
@@ -436,7 +477,7 @@ function VisaoSemana({ tarefas, categorias, tarefaDestacada, onConcluir, onExclu
   );
 }
 
-function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, dispatch }: VisaoProps) {
+function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onExcluir, onEditar, dispatch }: VisaoProps) {
   const concluidas = ordenarConcluidas(tarefas);
 
   return (
@@ -446,6 +487,7 @@ function VisaoConcluidas({ tarefas, categorias, tarefaDestacada, onConcluir, onE
       tarefaDestacada={tarefaDestacada}
       onConcluir={onConcluir}
       onExcluir={onExcluir}
+      onEditar={onEditar}
       dispatch={dispatch}
       mensagemVazia={textos.concluidasListaVazia}
       somenteExibirConclusao

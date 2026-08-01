@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Dispatch } from 'react';
-import { Bell, CheckCircle2, ChevronDown, ChevronUp, Plus, Repeat, Star, Trash2, X } from 'lucide-react';
+import { Bell, Check, CheckCircle2, ChevronDown, ChevronUp, Pencil, Plus, Repeat, Star, Trash2, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Tarefa } from '../types/tarefa';
@@ -9,6 +9,7 @@ import type { AcaoTarefas } from '../lib/tarefasReducer';
 import { textos } from '../lib/textos';
 import { encontrarCategoria } from '../lib/categorias';
 import { estaAtrasada } from '../lib/datas';
+import { formatarRecorrencia } from '../lib/recorrencia';
 
 type TaskItemProps = {
   tarefa: Tarefa;
@@ -16,6 +17,7 @@ type TaskItemProps = {
   destacada: boolean;
   onConcluir: (id: string) => void;
   onExcluir: (id: string) => void;
+  onEditar: (tarefa: Tarefa) => void;
   dispatch: Dispatch<AcaoTarefas>;
   somenteExibirConclusao?: boolean;
 };
@@ -26,6 +28,7 @@ export function TaskItem({
   destacada,
   onConcluir,
   onExcluir,
+  onEditar,
   dispatch,
   somenteExibirConclusao = false,
 }: TaskItemProps) {
@@ -33,6 +36,8 @@ export function TaskItem({
   const categoria = encontrarCategoria(categorias, tarefa.categoria);
   const [checklistAberto, setChecklistAberto] = useState(false);
   const [novoItem, setNovoItem] = useState('');
+  const [subtarefaEditandoId, setSubtarefaEditandoId] = useState<string | null>(null);
+  const [textoEdicaoSubtarefa, setTextoEdicaoSubtarefa] = useState('');
 
   useEffect(() => {
     if (destacada) ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -46,6 +51,18 @@ export function TaskItem({
     if (novoItem.trim() === '') return;
     dispatch({ tipo: 'adicionarSubtarefa', id: tarefa.id, texto: novoItem });
     setNovoItem('');
+  }
+
+  function iniciarEdicaoSubtarefa(subtarefaId: string, textoAtual: string) {
+    setSubtarefaEditandoId(subtarefaId);
+    setTextoEdicaoSubtarefa(textoAtual);
+  }
+
+  function salvarEdicaoSubtarefa(evento: React.FormEvent) {
+    evento.preventDefault();
+    if (subtarefaEditandoId === null || textoEdicaoSubtarefa.trim() === '') return;
+    dispatch({ tipo: 'editarSubtarefa', id: tarefa.id, subtarefaId: subtarefaEditandoId, texto: textoEdicaoSubtarefa });
+    setSubtarefaEditandoId(null);
   }
 
   return (
@@ -108,7 +125,12 @@ export function TaskItem({
                 >
                   <Bell size={12} />
                   {format(new Date(tarefa.lembreteEm), "d 'de' MMM, HH:mm", { locale: ptBR })}
-                  {tarefa.recorrencia !== null && <Repeat size={12} aria-label={textos.rotuloRecorrencia} />}
+                  {tarefa.recorrencia !== null && (
+                    <span className="flex items-center gap-xs">
+                      <Repeat size={12} aria-hidden="true" />
+                      {formatarRecorrencia(tarefa.recorrencia)}
+                    </span>
+                  )}
                 </span>
               )
             )}
@@ -126,6 +148,16 @@ export function TaskItem({
             )}
           </div>
         </div>
+        {!somenteExibirConclusao && (
+          <button
+            type="button"
+            onClick={() => onEditar(tarefa)}
+            aria-label={textos.botaoEditarTarefa}
+            className="text-on-surface-variant opacity-0 transition-opacity hover:text-primary focus-visible:opacity-100 group-hover:opacity-100"
+          >
+            <Pencil size={18} />
+          </button>
+        )}
         <button
           type="button"
           onClick={() => onExcluir(tarefa.id)}
@@ -138,32 +170,63 @@ export function TaskItem({
 
       {checklistAberto && !somenteExibirConclusao && (
         <div className="ml-9 flex flex-col gap-xs">
-          {tarefa.subtarefas.map((subtarefa) => (
-            <div key={subtarefa.id} className="flex items-center gap-sm">
-              <input
-                type="checkbox"
-                checked={subtarefa.concluida}
-                onChange={() => dispatch({ tipo: 'alternarSubtarefa', id: tarefa.id, subtarefaId: subtarefa.id })}
-                aria-label={subtarefa.texto}
-                className="h-4 w-4 shrink-0 cursor-pointer appearance-none rounded-[3px] border-2 border-outline-variant checked:border-primary checked:bg-primary"
-              />
-              <span
-                className={`flex-grow text-body-md text-on-surface ${
-                  subtarefa.concluida ? 'text-on-surface-variant line-through' : ''
-                }`}
-              >
-                {subtarefa.texto}
-              </span>
-              <button
-                type="button"
-                onClick={() => dispatch({ tipo: 'removerSubtarefa', id: tarefa.id, subtarefaId: subtarefa.id })}
-                aria-label={`${textos.botaoRemoverSubtarefa}: ${subtarefa.texto}`}
-                className="text-on-surface-variant hover:text-error"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
+          {tarefa.subtarefas.map((subtarefa) =>
+            subtarefaEditandoId === subtarefa.id ? (
+              <form key={subtarefa.id} onSubmit={salvarEdicaoSubtarefa} className="flex items-center gap-sm">
+                <input
+                  value={textoEdicaoSubtarefa}
+                  onChange={(evento) => setTextoEdicaoSubtarefa(evento.target.value)}
+                  onBlur={salvarEdicaoSubtarefa}
+                  maxLength={200}
+                  autoFocus
+                  className="flex-grow rounded border border-primary bg-transparent px-sm py-xs text-body-md text-on-surface focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={textoEdicaoSubtarefa.trim() === ''}
+                  aria-label={textos.botaoSalvarSubtarefa}
+                  className="text-on-surface-variant hover:text-primary disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <Check size={14} />
+                </button>
+              </form>
+            ) : (
+              <div key={subtarefa.id} className="group/item flex items-center gap-sm">
+                <input
+                  type="checkbox"
+                  checked={subtarefa.concluida}
+                  onChange={() => dispatch({ tipo: 'alternarSubtarefa', id: tarefa.id, subtarefaId: subtarefa.id })}
+                  aria-label={subtarefa.texto}
+                  className="h-4 w-4 shrink-0 cursor-pointer appearance-none rounded-[3px] border-2 border-outline-variant checked:border-primary checked:bg-primary"
+                />
+                <button
+                  type="button"
+                  onClick={() => iniciarEdicaoSubtarefa(subtarefa.id, subtarefa.texto)}
+                  className={`flex-grow text-left text-body-md text-on-surface ${
+                    subtarefa.concluida ? 'text-on-surface-variant line-through' : ''
+                  }`}
+                >
+                  {subtarefa.texto}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => iniciarEdicaoSubtarefa(subtarefa.id, subtarefa.texto)}
+                  aria-label={`${textos.botaoEditarSubtarefa}: ${subtarefa.texto}`}
+                  className="text-on-surface-variant opacity-0 transition-opacity hover:text-primary focus-visible:opacity-100 group-hover/item:opacity-100"
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatch({ tipo: 'removerSubtarefa', id: tarefa.id, subtarefaId: subtarefa.id })}
+                  aria-label={`${textos.botaoRemoverSubtarefa}: ${subtarefa.texto}`}
+                  className="text-on-surface-variant hover:text-error"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ),
+          )}
           <form onSubmit={handleAdicionarItem} className="flex items-center gap-sm">
             <input
               value={novoItem}

@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Bell, Plus, Repeat, Star, Tag, X } from 'lucide-react';
+import { Bell, Plus, Star, Tag, X } from 'lucide-react';
 import { textos } from '../lib/textos';
-import type { Categoria, Prioridade, TipoRecorrencia } from '../types/tarefa';
+import type { Categoria, Prioridade, Recorrencia } from '../types/tarefa';
 import type { CategoriaDef } from '../types/categoria';
 import { CategoryChip } from './CategoryChip';
+import { RecurrenceField } from './RecurrenceField';
 import { valorDatetimeLocalParaIso, valorMinimoDatetimeLocal } from '../lib/datas';
+import { recorrenciaValida } from '../lib/recorrencia';
 import { VoiceButton } from './VoiceButton';
 import { suportadoReconhecimentoVoz } from '../lib/voz';
 
@@ -15,18 +17,11 @@ type TaskFormProps = {
     categoria: Categoria | null,
     lembreteEm: string | null,
     tags: string[],
-    recorrencia: TipoRecorrencia | null,
+    recorrencia: Recorrencia | null,
     prioridade: Prioridade,
   ) => void;
   onIniciarVoz: () => void;
 };
-
-const OPCOES_RECORRENCIA: { valor: TipoRecorrencia | ''; rotulo: string }[] = [
-  { valor: '', rotulo: textos.recorrenciaNenhuma },
-  { valor: 'diaria', rotulo: textos.recorrenciaDiaria },
-  { valor: 'semanal', rotulo: textos.recorrenciaSemanal },
-  { valor: 'mensal', rotulo: textos.recorrenciaMensal },
-];
 
 export function TaskForm({ categorias, onAdicionar, onIniciarVoz }: TaskFormProps) {
   const [titulo, setTitulo] = useState('');
@@ -34,13 +29,20 @@ export function TaskForm({ categorias, onAdicionar, onIniciarVoz }: TaskFormProp
   const [valorLembrete, setValorLembrete] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [novaTag, setNovaTag] = useState('');
-  const [recorrencia, setRecorrencia] = useState<TipoRecorrencia | null>(null);
+  const [recorrencia, setRecorrencia] = useState<Recorrencia | null>(null);
   const [prioridade, setPrioridade] = useState<Prioridade>('normal');
 
   function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
     const lembreteEm = valorLembrete === '' ? null : valorDatetimeLocalParaIso(valorLembrete);
-    onAdicionar(titulo, categoria, lembreteEm, tags, lembreteEm === null ? null : recorrencia, prioridade);
+    onAdicionar(
+      titulo,
+      categoria,
+      lembreteEm,
+      tags,
+      lembreteEm === null ? null : recorrenciaValida(recorrencia),
+      prioridade,
+    );
     setTitulo('');
     setCategoria(null);
     setValorLembrete('');
@@ -107,25 +109,7 @@ export function TaskForm({ categorias, onAdicionar, onIniciarVoz }: TaskFormProp
             )}
           </div>
 
-          {valorLembrete !== '' && (
-            <div className="flex items-center gap-sm rounded-lg border border-outline-variant px-md py-sm">
-              <Repeat size={16} className="shrink-0 text-on-surface-variant" />
-              <select
-                value={recorrencia ?? ''}
-                onChange={(evento) =>
-                  setRecorrencia(evento.target.value === '' ? null : (evento.target.value as TipoRecorrencia))
-                }
-                aria-label={textos.rotuloRecorrencia}
-                className="flex-grow bg-transparent text-body-md text-on-surface focus:outline-none"
-              >
-                {OPCOES_RECORRENCIA.map((opcao) => (
-                  <option key={opcao.valor} value={opcao.valor}>
-                    {opcao.rotulo}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {valorLembrete !== '' && <RecurrenceField recorrencia={recorrencia} onMudar={setRecorrencia} />}
 
           <div className="flex items-center gap-sm rounded-lg border border-outline-variant px-md py-sm">
             <Tag size={16} className="shrink-0 text-on-surface-variant" />

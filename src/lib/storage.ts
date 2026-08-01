@@ -11,6 +11,23 @@ const subtarefaSchema = z.object({
   concluida: z.boolean(),
 });
 
+// Até a versão 2 do estado persistido, recorrencia era gravada como string
+// solta ('diaria' | 'semanal' | 'mensal' | null). Virou objeto para suportar
+// também dias específicos da semana — o preprocess abaixo envelopa o valor
+// antigo em { tipo: valor } antes de validar, então uma tarefa antiga migra
+// sozinha na leitura, sem perder a recorrência que já tinha.
+const recorrenciaSchema = z
+  .preprocess(
+    (valor) => (typeof valor === 'string' ? { tipo: valor } : valor),
+    z
+      .union([
+        z.object({ tipo: z.enum(['diaria', 'semanal', 'mensal']) }),
+        z.object({ tipo: z.literal('diasDaSemana'), dias: z.array(z.number().int().min(0).max(6)).min(1) }),
+      ])
+      .nullable(),
+  )
+  .default(null);
+
 export const tarefaSchema = z.object({
   id: z.string(),
   titulo: z.string().min(1).max(200),
@@ -23,7 +40,7 @@ export const tarefaSchema = z.object({
   // carregarEstado.
   tags: z.array(z.string()).default([]),
   lembreteEm: z.string().nullable(),
-  recorrencia: z.enum(['diaria', 'semanal', 'mensal']).nullable().default(null),
+  recorrencia: recorrenciaSchema,
   prioridade: z.enum(['normal', 'importante']).default('normal'),
   subtarefas: z.array(subtarefaSchema).default([]),
   concluida: z.boolean(),
@@ -34,14 +51,14 @@ export const tarefaSchema = z.object({
 });
 
 const estadoPersistidoSchema = z.object({
-  // Aceita a chave gravada tanto na versão 1 (sem tags/recorrência/prioridade/
-  // subtarefas) quanto na versão 2 — o schema de tarefa acima já preenche os
-  // campos novos com o padrão quando ausentes.
-  versao: z.union([z.literal(1), z.literal(2)]),
+  // Aceita a chave gravada em qualquer versão anterior — o schema de tarefa
+  // acima já preenche/migra os campos novos quando ausentes ou em formato
+  // antigo.
+  versao: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   tarefas: z.array(tarefaSchema),
 });
 
-export const ESTADO_VAZIO: EstadoPersistido = { versao: 2, tarefas: [] };
+export const ESTADO_VAZIO: EstadoPersistido = { versao: 3, tarefas: [] };
 
 export function carregarEstado(): { estado: EstadoPersistido; corrompido: boolean } {
   const bruto = localStorage.getItem(CHAVE);
@@ -51,7 +68,7 @@ export function carregarEstado(): { estado: EstadoPersistido; corrompido: boolea
 
   const resultado = estadoPersistidoSchema.safeParse(parseJsonOrNull(bruto));
   if (resultado.success) {
-    return { estado: { versao: 2, tarefas: resultado.data.tarefas }, corrompido: false };
+    return { estado: { versao: 3, tarefas: resultado.data.tarefas }, corrompido: false };
   }
 
   localStorage.setItem(CHAVE_BACKUP, bruto);
