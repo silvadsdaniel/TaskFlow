@@ -126,6 +126,8 @@ Frase: "{TRANSCRICAO}"
 - Deixar a chamada de IA isolada em `src/lib/ia.ts`, atrás de uma função única `interpretarTarefa(texto: string)`. Isso permite trocar a chamada direta por um proxy no futuro alterando um arquivo só.
 - Incluir comentário no topo desse arquivo registrando que a chamada direta do navegador expõe a chave e é aceitável apenas em ambiente local.
 
+**Pendência aberta:** o deploy em `.github/workflows/deploy-pages.yml` publica o build em GitHub Pages, que é público. Se `VITE_AI_API_KEY` for configurada como secret desse workflow, a chave vaza no bundle de produção para qualquer visitante — o comentário acima ("aceitável apenas em ambiente local") deixa de valer nesse cenário. Antes de configurar essa secret no repositório, decidir entre: (a) não fazer deploy do recurso de voz/IA em produção, ou (b) introduzir um proxy mínimo (ex.: Cloudflare Worker gratuito) na frente da Groq — o que exige aprovação explícita por sair da stack "sem backend" fixada acima. Não implementado nesta rodada; decisão do responsável pelo produto.
+
 ## Acessibilidade
 - Toda a aplicação navegável por teclado.
 - `Enter` no campo de entrada cria a tarefa. `Escape` fecha painéis e cancela gravação.
@@ -158,6 +160,42 @@ Pronto quando: o mês renderiza os indicadores corretos e clicar num dia abre su
 ### Fase 6 — Refino
 Tema escuro, microinterações, toast de desfazer, estados vazios, responsividade em 390px, PWA instalável.
 Pronto quando: nenhum erro de console, layout íntegro em 390px e app instalável.
+
+### Fase 7 — Exportar e importar dados
+
+Motivação: os dados vivem só no `localStorage` de um navegador. Trocar de dispositivo, limpar dados do site ou reinstalar o navegador apaga tudo sem aviso — hoje não há como o usuário tirar uma cópia de segurança. Esta fase resolve isso sem sair do modelo "sem backend": o próprio usuário é responsável por guardar o arquivo onde quiser (Drive, e-mail, pendrive).
+
+Formato do arquivo exportado (`taskflow-backup-AAAA-MM-DD.json`):
+```typescript
+type BackupExportado = {
+  versao: 1;
+  exportadoEm: string; // ISO 8601 com offset
+  tarefas: Tarefa[];
+  categorias: CategoriaDef[];
+};
+```
+- Exportar: gera o JSON acima (todas as tarefas e categorias atuais) e dispara o download pelo navegador. Sem envio a servidor nenhum.
+- Importar: usuário seleciona um arquivo `.json`. Validar com zod reaproveitando os schemas de `storage.ts` e `categoriasStorage.ts`. Arquivo inválido ou corrompido exibe mensagem de erro específica, sem travar a tela.
+- Importar **substitui** integralmente tarefas e categorias atuais — não faz merge por id. Antes de aplicar, mostrar contagem do que será importado ("X tarefas e Y categorias") e exigir confirmação explícita num passo próprio da UI (nunca `confirm()` nativo), avisando que a ação não pode ser desfeita.
+- Mesclar dados de dois arquivos fica fora de escopo desta fase.
+- Acessar pelo mesmo cabeçalho do tema (ícone dedicado), abrindo um painel modal com as duas ações.
+Pronto quando: exportar gera um arquivo que, importado de volta (no mesmo navegador ou em outro), reproduz exatamente as mesmas tarefas e categorias.
+
+### Fase 8 — Busca e tags múltiplas
+Campo de busca por texto (título e nota, case-insensitive, sem acento-sensibilidade) visível nas visões Hoje/Semana/Concluídas. Tarefa passa a aceitar múltiplas tags (categoria continua existindo como campo único "principal" para os pontos do calendário; tags são adicionais, filtráveis do mesmo jeito que categoria hoje). Exige nova versão do estado persistido (`versao: 2`) com migração automática de tarefas antigas (`tags: []`).
+Pronto quando: buscar por um trecho do título encontra a tarefa em qualquer visão, e filtrar por tag combina com o filtro de categoria existente.
+
+### Fase 9 — Tarefas recorrentes
+Campo opcional de recorrência (diária, semanal, mensal) no formulário de tarefa. Ao concluir uma tarefa recorrente, gerar automaticamente a próxima ocorrência com o lembrete deslocado pelo intervalo, preservando título/nota/categoria/tags. Exige migração do estado persistido para incluir `recorrencia: {tipo, ...} | null`.
+Pronto quando: concluir uma tarefa diária cria a ocorrência do dia seguinte automaticamente, e excluir uma ocorrência não afeta as futuras.
+
+### Fase 10 — Subtarefas (checklist)
+Lista de itens simples (texto + concluído) dentro de uma tarefa, sem hierarquia adicional. Progresso exibido como "2/5" no card da tarefa. Exige migração do estado persistido (`subtarefas: []`).
+Pronto quando: criar, concluir e reordenar itens de checklist dentro de uma tarefa funciona e persiste.
+
+### Fase 11 — Prioridade
+Campo opcional de prioridade (normal | importante) por tarefa, afetando ordenação (importante primeiro dentro de cada grupo já definido em "Ordenação") e um indicador visual discreto no card. Exige migração do estado persistido (`prioridade: 'normal'` como padrão).
+Pronto quando: uma tarefa importante aparece antes das normais dentro do mesmo grupo de ordenação, em todas as visões.
 
 ## Critérios de aceite finais
 1. Criar tarefa com lembrete e receber a notificação no horário, com a aba aberta.

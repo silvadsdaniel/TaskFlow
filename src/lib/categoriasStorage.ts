@@ -4,7 +4,7 @@ import { CATEGORIAS_PADRAO } from './categorias';
 
 const CHAVE = 'categorias:v1';
 
-const categoriaDefSchema = z.object({
+export const categoriaDefSchema = z.object({
   id: z.string(),
   nome: z.string().min(1).max(40),
   cor: z.string(),

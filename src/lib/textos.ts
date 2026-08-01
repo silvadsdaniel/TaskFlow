@@ -71,4 +71,20 @@ export const textos = {
   botaoCancelarCategoria: 'Cancelar',
   abaConcluidas: 'Concluídas',
   concluidasListaVazia: 'Nenhuma tarefa concluída ainda.',
+  botaoBackup: 'Backup',
+  tituloBackup: 'Backup dos dados',
+  textoExportar:
+    'Baixe um arquivo com todas as suas tarefas e categorias. Guarde-o em algum lugar seguro (e-mail, nuvem, pendrive) para não perder nada se trocar de navegador ou aparelho.',
+  botaoExportar: 'Exportar dados',
+  textoImportar: 'Selecione um arquivo de backup exportado anteriormente pelo TaskFlow.',
+  botaoSelecionarArquivo: 'Selecionar arquivo',
+  erroImportarArquivoInvalido:
+    'Não foi possível ler este arquivo. Verifique se é um backup válido do TaskFlow.',
+  avisoConfirmarImportacaoPrefixo: 'Este arquivo tem',
+  avisoConfirmarImportacaoSufixo:
+    'Importar vai substituir todos os dados atuais e não pode ser desfeito.',
+  botaoConfirmarImportar: 'Substituir dados atuais',
+  botaoCancelarImportar: 'Cancelar',
+  dadosExportados: 'Backup exportado',
+  dadosImportados: 'Dados importados com sucesso',
 } as const;

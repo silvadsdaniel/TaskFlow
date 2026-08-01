@@ -23,7 +23,10 @@ import { DayDetailPanel } from './components/DayDetailPanel';
 import { ThemeToggle } from './components/ThemeToggle';
 import { UndoToast } from './components/UndoToast';
 import { CategoryManager } from './components/CategoryManager';
+import { BackupPanel } from './components/BackupPanel';
+import { BackupButton } from './components/BackupButton';
 import { textos } from './lib/textos';
+import { exportarBackup } from './lib/backup';
 import { agruparHoje, agruparSemana, ordenarConcluidas } from './lib/visoes';
 import { diaEmIso09h } from './lib/datas';
 import { tarefasComLembreteNoDia } from './lib/calendario';
@@ -35,7 +38,7 @@ import {
   solicitarPermissao,
   suportado,
 } from './lib/notificacoes';
-import type { Categoria } from './types/tarefa';
+import type { Categoria, Tarefa } from './types/tarefa';
 import type { CategoriaDef } from './types/categoria';
 
 export default function App() {
@@ -52,7 +55,13 @@ export default function App() {
   const [mesVisualizado, setMesVisualizado] = useState(() => new Date());
   const [diaSelecionado, setDiaSelecionado] = useState<Date | null>(null);
   const [gerenciarCategoriasAberto, setGerenciarCategoriasAberto] = useState(false);
-  const { categorias, criar: criarCategoria, editar: editarCategoria } = useCategorias();
+  const [backupAberto, setBackupAberto] = useState(false);
+  const {
+    categorias,
+    criar: criarCategoria,
+    editar: editarCategoria,
+    substituir: substituirCategorias,
+  } = useCategorias();
   const {
     estado: estadoVoz,
     iniciar: iniciarVoz,
@@ -109,7 +118,8 @@ export default function App() {
 
   const fasesComPainelAberto: EstadoCapturaVoz['fase'][] = ['capturando', 'processando', 'erro', 'confirmando'];
   const painelVozAberto = fasesComPainelAberto.includes(estadoVoz.fase);
-  const algumPainelAberto = painelVozAberto || diaSelecionado !== null || gerenciarCategoriasAberto;
+  const algumPainelAberto =
+    painelVozAberto || diaSelecionado !== null || gerenciarCategoriasAberto || backupAberto;
 
   useEffect(() => {
     if (!algumPainelAberto) return;
@@ -118,11 +128,12 @@ export default function App() {
       if (evento.key !== 'Escape') return;
       if (painelVozAberto) cancelarVoz();
       else if (gerenciarCategoriasAberto) setGerenciarCategoriasAberto(false);
+      else if (backupAberto) setBackupAberto(false);
       else setDiaSelecionado(null);
     }
     document.addEventListener('keydown', aoPressionarTecla);
     return () => document.removeEventListener('keydown', aoPressionarTecla);
-  }, [algumPainelAberto, painelVozAberto, gerenciarCategoriasAberto, cancelarVoz]);
+  }, [algumPainelAberto, painelVozAberto, gerenciarCategoriasAberto, backupAberto, cancelarVoz]);
 
   async function handlePermitirNotificacoes() {
     const resultado = await solicitarPermissao();
@@ -140,6 +151,18 @@ export default function App() {
     setAnuncio(textos.tarefaExcluida);
   }
 
+  function handleExportarBackup() {
+    exportarBackup(tarefas, categorias);
+    setAnuncio(textos.dadosExportados);
+  }
+
+  function handleImportarBackup(tarefasImportadas: Tarefa[], categoriasImportadas: CategoriaDef[]) {
+    dispatch({ tipo: 'substituirTudo', tarefas: tarefasImportadas });
+    substituirCategorias(categoriasImportadas);
+    setAnuncio(textos.dadosImportados);
+    setBackupAberto(false);
+  }
+
   return (
     <div className="min-h-screen bg-background text-on-surface">
       <main className="mx-auto w-full max-w-[640px] px-margin-mobile pb-32 pt-lg">
@@ -148,7 +171,10 @@ export default function App() {
             <h1 className="text-display-md-mobile text-on-surface">{textos.tituloApp}</h1>
             <p className="text-body-md text-on-surface-variant">{textos.subtituloApp}</p>
           </div>
-          <ThemeToggle tema={tema} onAlternar={alternarTema} />
+          <div className="flex items-center gap-xs">
+            <BackupButton onAbrir={() => setBackupAberto(true)} />
+            <ThemeToggle tema={tema} onAlternar={alternarTema} />
+          </div>
         </header>
 
         {corrompido && (
@@ -239,6 +265,14 @@ export default function App() {
           onFechar={() => setGerenciarCategoriasAberto(false)}
           onCriar={criarCategoria}
           onEditar={editarCategoria}
+        />
+      )}
+
+      {backupAberto && (
+        <BackupPanel
+          onFechar={() => setBackupAberto(false)}
+          onExportar={handleExportarBackup}
+          onImportar={handleImportarBackup}
         />
       )}
 
